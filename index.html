@@ -3,703 +3,1136 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Energy Ledger — Precision Calorie & Fitness AI Tracker</title>
+<title>IRON LOG — AI Powered Fitness & Calorie Tracker</title>
+<meta name="description" content="Elite AI-powered calorie and fitness tracker for serious gym athletes. Powered by Google Gemini Vision.">
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=IBM+Plex+Sans:wght@400;500;600;700&family=Share+Tech+Mono&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@400;500;600&family=Share+Tech+Mono&display=swap');
 
 :root {
-  --ink: #15181B;
-  --paper: #EDEFE7;
-  --paper2: #E4E7DC;
-  --paper-card: #F4F6F0;
-  --steel: #59636B;
-  --red: #E8432D;
-  --amber: #FFB020;
-  --green: #35C57A;
-  --blue: #2E86DE;
-  --purple: #8E44AD;
-  --bezel: #1D2124;
-  --bezel-light: #2A3035;
-  --white: #FCFCFA;
-  --glow-amber: 0 0 16px rgba(255, 176, 32, 0.45);
-  --glow-green: 0 0 16px rgba(53, 197, 122, 0.45);
-  --glow-red: 0 0 16px rgba(232, 67, 45, 0.45);
-  --glow-blue: 0 0 16px rgba(46, 134, 222, 0.45);
+  --bg: #070708;
+  --bg2: #0D0D0F;
+  --bg3: #111114;
+  --card: #13131A;
+  --card2: #1A1A24;
+  --border: rgba(255,255,255,0.07);
+  --border-hot: rgba(255,60,0,0.5);
+  --orange: #FF3D00;
+  --orange2: #FF6D00;
+  --neon: #00FFB2;
+  --neon2: #00E5FF;
+  --yellow: #FFD600;
+  --red: #FF1744;
+  --white: #FFFFFF;
+  --muted: rgba(255,255,255,0.4);
+  --muted2: rgba(255,255,255,0.15);
+  --text: rgba(255,255,255,0.9);
+
+  --glow-o: 0 0 20px rgba(255,61,0,0.6), 0 0 60px rgba(255,61,0,0.2);
+  --glow-n: 0 0 20px rgba(0,255,178,0.6), 0 0 60px rgba(0,255,178,0.2);
+  --glow-b: 0 0 20px rgba(0,229,255,0.6), 0 0 60px rgba(0,229,255,0.2);
+  --glow-y: 0 0 20px rgba(255,214,0,0.5), 0 0 40px rgba(255,214,0,0.15);
 }
 
-* { box-sizing: border-box; }
-body { margin: 0; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
 
 @media (prefers-reduced-motion: reduce) {
-  * { animation: none !important; transition: none !important; }
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
 }
+
+html { scroll-behavior: smooth; }
 
 body {
-  background: var(--paper);
-  color: var(--ink);
-  font-family: 'IBM Plex Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Barlow', sans-serif;
   -webkit-font-smoothing: antialiased;
   min-height: 100vh;
-  display: flex;
-  flex-direction: column;
+  overflow-x: hidden;
 }
 
-.wrap {
-  max-width: 1050px;
+/* ---- PARTICLE CANVAS BACKGROUND ---- */
+#particle-canvas {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.35;
+}
+
+.page-wrap {
+  position: relative;
+  z-index: 1;
+  max-width: 1100px;
   margin: 0 auto;
-  width: 100%;
-  padding: 0 16px;
-  flex: 1;
+  padding: 0 20px;
 }
 
-/* ---------- TOP BAR & HEADER ---------- */
+/* ---- HERO HEADER ---- */
+.hero {
+  position: relative;
+  padding: 0;
+  margin-bottom: 0;
+  overflow: hidden;
+}
+
+.hero-bg-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(100px, 20vw, 220px);
+  color: rgba(255,255,255,0.025);
+  white-space: nowrap;
+  pointer-events: none;
+  letter-spacing: 0.05em;
+  user-select: none;
+}
+
 .top-bar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 0 6px;
-  border-bottom: 1px solid rgba(21, 24, 27, 0.15);
-  font-family: 'Share Tech Mono', monospace;
-  font-size: 11px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
 }
 
-.top-bar-left {
+.brand {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
 }
 
-.status-indicator {
+.brand-logo {
+  width: 36px;
+  height: 36px;
+  background: var(--orange);
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
   display: flex;
   align-items: center;
-  gap: 6px;
-  text-transform: uppercase;
+  justify-content: center;
+  font-size: 16px;
+  flex-shrink: 0;
+  animation: pulse-logo 2.5s ease-in-out infinite;
+}
+
+@keyframes pulse-logo {
+  0%, 100% { box-shadow: 0 0 0px var(--orange); }
+  50% { box-shadow: var(--glow-o); }
+}
+
+.brand-name {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 26px;
   letter-spacing: 0.1em;
-  color: var(--steel);
+  color: var(--white);
 }
 
-.dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--green);
-  display: inline-block;
-  box-shadow: 0 0 6px var(--green);
+.brand-name span {
+  color: var(--orange);
 }
-
-.dot.red { background: var(--red); box-shadow: 0 0 6px var(--red); }
-.dot.amber { background: var(--amber); box-shadow: 0 0 6px var(--amber); }
 
 .top-bar-right {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
+}
+
+.status-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(0,255,178,0.07);
+  border: 1px solid rgba(0,255,178,0.2);
+  border-radius: 100px;
+  padding: 5px 12px;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px;
+  color: var(--neon);
+  letter-spacing: 0.1em;
+}
+
+.pulse-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--neon);
+  animation: pulse-dot 1.5s ease-in-out infinite;
+  box-shadow: 0 0 6px var(--neon);
+}
+.pulse-dot.red { background: var(--red); box-shadow: 0 0 6px var(--red); animation-name: pulse-dot-r; }
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.7); }
+}
+@keyframes pulse-dot-r {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
 }
 
 .icon-btn {
-  background: none;
-  border: 1px solid var(--ink);
-  padding: 4px 8px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  padding: 7px 14px;
   font-family: 'Share Tech Mono', monospace;
   font-size: 11px;
   cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s;
   display: flex;
   align-items: center;
-  gap: 4px;
-  color: var(--ink);
-  transition: all 0.2s;
+  gap: 5px;
+  letter-spacing: 0.05em;
 }
+.icon-btn:hover { border-color: var(--orange); color: var(--orange); background: rgba(255,61,0,0.08); }
 
-.icon-btn:hover {
-  background: var(--ink);
-  color: var(--white);
-}
-
-.header {
-  padding: 24px 0 18px;
-  border-bottom: 4px solid var(--ink);
+/* ---- HERO TITLE ---- */
+.hero-content {
+  padding: 40px 0 30px;
   position: relative;
 }
 
-.eyebrow {
+.hero-eyebrow {
   font-family: 'Share Tech Mono', monospace;
   font-size: 11px;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: var(--steel);
+  color: var(--orange);
+  margin-bottom: 10px;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
-
-.eyebrow::before {
+.hero-eyebrow::before {
   content: '';
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--red);
   display: inline-block;
+  width: 30px;
+  height: 2px;
+  background: var(--orange);
+  box-shadow: var(--glow-o);
 }
 
-h1 {
-  font-family: 'Big Shoulders Display', sans-serif;
-  font-weight: 900;
-  text-transform: uppercase;
-  font-size: clamp(2.4rem, 8vw, 3.8rem);
-  line-height: 0.92;
-  letter-spacing: 0.005em;
-  margin: 6px 0 6px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
+.hero-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(3.5rem, 10vw, 7rem);
+  line-height: 0.9;
+  letter-spacing: 0.03em;
+  color: var(--white);
+  margin-bottom: 16px;
 }
 
-.badge-ai {
-  font-family: 'Share Tech Mono', monospace;
-  font-size: 11px;
-  background: var(--ink);
-  color: var(--amber);
-  padding: 4px 8px;
-  border-radius: 2px;
-  letter-spacing: 0.12em;
-  vertical-align: middle;
+.hero-title .highlight {
+  color: transparent;
+  -webkit-text-stroke: 2px var(--orange);
+  text-shadow: var(--glow-o);
+  animation: flicker 6s infinite;
 }
 
-.subtitle {
-  color: var(--steel);
-  font-size: 14.5px;
-  max-width: 620px;
-  line-height: 1.4;
+@keyframes flicker {
+  0%, 95%, 100% { opacity: 1; }
+  96% { opacity: 0.85; }
+  97% { opacity: 1; }
+  98% { opacity: 0.9; }
+  99% { opacity: 1; }
 }
 
-/* ---------- TABS ---------- */
-.tabs {
-  display: flex;
-  border-bottom: 2px solid var(--ink);
+.hero-sub {
+  color: var(--muted);
+  font-size: 15px;
+  max-width: 540px;
+  line-height: 1.55;
+  font-weight: 400;
+}
+
+/* ---- TABS ---- */
+.tabs-wrapper {
   position: sticky;
   top: 0;
-  background: var(--paper);
   z-index: 100;
+  background: rgba(7,7,8,0.95);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  padding: 0;
+}
+
+.tabs {
+  display: flex;
   overflow-x: auto;
   scrollbar-width: none;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 20px;
 }
 .tabs::-webkit-scrollbar { display: none; }
 
 .tab-btn {
-  flex: 1;
-  min-width: 130px;
-  padding: 14px 10px;
-  font-family: 'Share Tech Mono', monospace;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  font-size: 12px;
+  flex-shrink: 0;
+  padding: 16px 22px;
   background: none;
   border: none;
-  border-right: 1px solid var(--ink);
+  border-bottom: 3px solid transparent;
+  color: var(--muted);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   cursor: pointer;
-  color: var(--steel);
+  transition: all 0.2s;
   white-space: nowrap;
-  transition: background 0.15s, color 0.15s;
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 6px;
+  gap: 7px;
 }
-.tab-btn:last-child { border-right: none; }
+.tab-btn:hover { color: var(--white); }
 .tab-btn.active {
-  color: var(--ink);
-  font-weight: 700;
-  background: var(--white);
-  box-shadow: inset 0 -4px 0 var(--red);
-}
-.tab-btn:hover:not(.active) {
-  background: rgba(255,255,255,0.5);
-  color: var(--ink);
+  color: var(--orange);
+  border-bottom-color: var(--orange);
+  text-shadow: 0 0 8px rgba(255,61,0,0.4);
 }
 
-.panel { padding: 24px 0 48px; display: none; }
-.panel.active { display: block; animation: fadeIn 0.25s ease-out; }
+.tab-count {
+  background: var(--orange);
+  color: var(--white);
+  font-size: 10px;
+  padding: 1px 5px;
+  border-radius: 100px;
+  font-weight: 900;
+  min-width: 18px;
+  text-align: center;
+}
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(4px); }
+/* ---- PANELS ---- */
+.panel {
+  display: none;
+  padding: 32px 0 60px;
+  animation: panel-in 0.3s ease-out;
+}
+.panel.active { display: block; }
+
+@keyframes panel-in {
+  from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* ---------- FORM & LAYOUT ---------- */
-.field { margin-bottom: 16px; }
+/* ---- LAYOUT ---- */
+.layout { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; align-items: start; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+
+@media (max-width: 768px) {
+  .layout { grid-template-columns: 1fr; }
+  .grid2 { grid-template-columns: 1fr; }
+  .grid3 { grid-template-columns: 1fr 1fr; }
+}
+
+/* ---- SECTION HEADER ---- */
+.section-header {
+  margin-bottom: 24px;
+}
+.section-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 2.2rem;
+  letter-spacing: 0.05em;
+  color: var(--white);
+}
+.section-sub {
+  color: var(--muted);
+  font-size: 13px;
+  margin-top: 4px;
+}
+
+/* ---- FORM ELEMENTS ---- */
+.field { margin-bottom: 18px; }
 .field label {
   display: block;
   font-family: 'Share Tech Mono', monospace;
-  font-size: 11px;
-  letter-spacing: 0.1em;
+  font-size: 10px;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--steel);
-  margin-bottom: 6px;
+  color: var(--muted);
+  margin-bottom: 7px;
 }
+
 .field input[type="text"],
 .field input[type="number"],
 .field select,
 .field textarea {
   width: 100%;
-  padding: 10px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-bottom: 2px solid rgba(255,61,0,0.3);
+  color: var(--white);
+  font-family: 'Barlow', sans-serif;
   font-size: 15px;
-  font-family: 'IBM Plex Sans', sans-serif;
-  border: none;
-  border-bottom: 2px solid var(--ink);
-  background: transparent;
-  color: var(--ink);
-  transition: border-color 0.2s;
+  padding: 12px 14px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  border-radius: 4px 4px 0 0;
 }
 .field input:focus, .field select:focus, .field textarea:focus {
-  outline: none;
-  border-bottom-color: var(--red);
+  border-bottom-color: var(--orange);
+  box-shadow: 0 2px 0 var(--orange), 0 0 20px rgba(255,61,0,0.15);
 }
+.field select option { background: var(--card); color: var(--white); }
 
-.range-wrap {
+.segmented {
   display: flex;
-  align-items: center;
-  gap: 12px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  overflow: hidden;
 }
-.range-wrap input[type="range"] {
-  flex: 1;
-  accent-color: var(--ink);
-  cursor: pointer;
-}
-.range-val {
-  font-family: 'Share Tech Mono', monospace;
-  font-size: 14px;
-  font-weight: 700;
-  min-width: 50px;
-}
-
-.segmented { display: flex; border: 2px solid var(--ink); }
 .segmented button {
   flex: 1;
-  padding: 10px 6px;
-  background: var(--white);
+  padding: 12px;
+  background: var(--card);
   border: none;
-  border-right: 2px solid var(--ink);
-  font-family: 'IBM Plex Sans', sans-serif;
-  font-size: 13px;
-  font-weight: 600;
+  border-right: 1px solid var(--border);
+  color: var(--muted);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
   cursor: pointer;
-  color: var(--steel);
-  transition: all 0.15s;
+  transition: all 0.2s;
 }
 .segmented button:last-child { border-right: none; }
-.segmented button.active { background: var(--ink); color: var(--white); }
-
-.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0 16px; }
-.grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
-
-.btn {
-  font-family: 'Share Tech Mono', monospace;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  font-size: 13px;
-  padding: 14px 20px;
-  background: var(--ink);
+.segmented button.active {
+  background: var(--orange);
   color: var(--white);
-  border: none;
-  cursor: pointer;
-  width: 100%;
-  margin-top: 6px;
+  text-shadow: 0 0 8px rgba(255,255,255,0.3);
+}
+.segmented button:hover:not(.active) { background: var(--card2); color: var(--white); }
+
+/* ---- BUTTONS ---- */
+.btn {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  transition: background 0.2s, transform 0.1s;
+  width: 100%;
+  padding: 15px 20px;
+  background: linear-gradient(135deg, var(--orange), var(--orange2));
+  border: none;
+  color: var(--white);
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 18px;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(255,61,0,0.3);
 }
-.btn:hover:not(:disabled) { background: #2a2f34; }
-.btn:active:not(:disabled) { transform: translateY(1px); }
-.btn:disabled { background: var(--steel); cursor: not-allowed; opacity: 0.7; }
+.btn::before {
+  content: '';
+  position: absolute;
+  top: 0; left: -100%;
+  width: 100%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+  transition: left 0.4s;
+}
+.btn:hover::before { left: 100%; }
+.btn:hover { box-shadow: var(--glow-o); transform: translateY(-1px); }
+.btn:active { transform: translateY(0); }
+.btn:disabled { background: #2a2a2a; color: var(--muted); box-shadow: none; cursor: not-allowed; }
+.btn:disabled::before { display: none; }
 
-.btn-secondary {
-  background: var(--paper2);
-  color: var(--ink);
-  border: 2px solid var(--ink);
+.btn-ghost {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  box-shadow: none;
+  font-size: 15px;
+  padding: 12px 16px;
 }
-.btn-secondary:hover:not(:disabled) { background: var(--white); }
+.btn-ghost:hover { border-color: var(--orange); color: var(--orange); background: rgba(255,61,0,0.05); box-shadow: none; }
 
-.btn-success {
-  background: var(--green);
-  color: var(--bezel);
-  font-weight: 700;
+.btn-neon {
+  background: transparent;
+  border: 2px solid var(--neon);
+  color: var(--neon);
+  box-shadow: 0 4px 20px rgba(0,255,178,0.15);
+  font-size: 16px;
 }
-.btn-success:hover:not(:disabled) { background: #2cb56e; }
+.btn-neon:hover { background: rgba(0,255,178,0.08); box-shadow: var(--glow-n); }
 
-.layout { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; align-items: start; }
-@media (max-width: 768px) {
-  .layout { grid-template-columns: 1fr; gap: 24px; }
-  .grid2 { grid-template-columns: 1fr; }
-  .grid3 { grid-template-columns: 1fr; }
+/* ---- NUTRITION RESULTS CARD ---- */
+.result-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
 }
 
-/* ---------- NUTRITION & ENERGY CARDS ---------- */
-.facts-panel {
-  border: 3px solid var(--ink);
-  background: var(--white);
-  box-shadow: 4px 4px 0 var(--ink);
+.result-card .rc-head {
+  background: linear-gradient(135deg, #1A0A00, #140A00);
+  border-bottom: 1px solid rgba(255,61,0,0.2);
+  padding: 16px 20px;
 }
-.facts-panel .fp-eyebrow {
-  padding: 10px 16px 0;
+
+.rc-eyebrow {
   font-family: 'Share Tech Mono', monospace;
-  font-size: 10.5px;
+  font-size: 10px;
   letter-spacing: 0.14em;
+  color: var(--orange);
   text-transform: uppercase;
-  color: var(--steel);
 }
-.facts-panel h2 {
-  font-family: 'Big Shoulders Display', sans-serif;
-  font-weight: 900;
-  text-transform: uppercase;
-  font-size: 28px;
-  margin: 0;
-  padding: 0 16px;
+
+.rc-name {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 2rem;
+  letter-spacing: 0.05em;
+  color: var(--white);
+  margin-top: 2px;
 }
-.fp-serving {
-  padding: 6px 16px 10px;
-  font-size: 13px;
-  color: var(--steel);
-  border-bottom: 8px solid var(--ink);
-}
-.fp-big {
-  padding: 14px 16px;
-  border-bottom: 4px solid var(--ink);
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
-  background: #fafaf7;
-}
-.fp-big .num {
+
+.rc-serving {
+  font-size: 12px;
+  color: var(--muted);
   font-family: 'Share Tech Mono', monospace;
-  font-size: 46px;
-  font-weight: 700;
-  line-height: 1;
-  color: var(--ink);
+  margin-top: 2px;
 }
-.fp-big .lbl { font-size: 13px; color: var(--steel); text-align: right; max-width: 140px; }
-.fp-row {
+
+.calorie-display {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  padding: 28px 20px 20px;
+  position: relative;
+}
+
+.calorie-ring {
+  position: relative;
+  width: 140px;
+  height: 140px;
+  margin-bottom: 12px;
+}
+
+.calorie-ring svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.calorie-ring .ring-bg { fill: none; stroke: rgba(255,255,255,0.05); stroke-width: 8; }
+.calorie-ring .ring-fill {
+  fill: none;
+  stroke: var(--orange);
+  stroke-width: 8;
+  stroke-linecap: round;
+  stroke-dasharray: 377;
+  stroke-dashoffset: 377;
+  filter: drop-shadow(0 0 6px var(--orange));
+  transition: stroke-dashoffset 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.calorie-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+
+.calorie-num {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 2.6rem;
+  line-height: 1;
+  color: var(--orange);
+  text-shadow: var(--glow-o);
+}
+
+.calorie-unit {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* Macro bars */
+.macro-section {
+  padding: 0 20px 20px;
+}
+
+.macro-row {
+  display: grid;
+  grid-template-columns: 70px 1fr 50px;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+.macro-lbl {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.macro-bar-track {
+  height: 6px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 100px;
+  overflow: hidden;
+}
+.macro-bar-fill {
+  height: 100%;
+  border-radius: 100px;
+  width: 0%;
+  transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.macro-bar-fill.protein { background: var(--orange); box-shadow: 0 0 8px rgba(255,61,0,0.5); }
+.macro-bar-fill.carbs { background: var(--yellow); box-shadow: 0 0 8px rgba(255,214,0,0.5); }
+.macro-bar-fill.fat { background: var(--neon2); box-shadow: 0 0 8px rgba(0,229,255,0.5); }
+
+.macro-val {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 12px;
+  font-weight: 700;
+  text-align: right;
+  color: var(--white);
+}
+
+.facts-rows {
+  border-top: 1px solid var(--border);
+  padding: 0 20px 16px;
+}
+.facts-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 9px 16px;
-  border-bottom: 1px solid #cfd3c7;
-  font-size: 13.5px;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  font-size: 13px;
 }
-.fp-row:last-child { border-bottom: none; }
-.fp-row .v { font-family: 'Share Tech Mono', monospace; font-weight: 700; }
-.fp-empty { padding: 40px 16px; color: var(--steel); font-size: 14px; text-align: center; }
-
-/* Macro Pill Bar */
-.macro-bar-container {
-  padding: 12px 16px;
-  border-bottom: 4px solid var(--ink);
-}
-.macro-labels {
-  display: flex;
-  justify-content: space-between;
+.facts-row:last-child { border-bottom: none; }
+.facts-row .lbl { color: var(--muted); }
+.facts-row .val {
   font-family: 'Share Tech Mono', monospace;
-  font-size: 11px;
-  margin-bottom: 6px;
+  font-weight: 700;
+  color: var(--neon);
 }
-.macro-progress {
-  height: 14px;
-  display: flex;
-  background: var(--paper2);
-  border: 1px solid var(--ink);
-  overflow: hidden;
-}
-.macro-segment { height: 100%; transition: width 0.3s ease; }
-.macro-p { background: var(--red); }
-.macro-c { background: var(--amber); }
-.macro-f { background: var(--blue); }
 
-/* ---------- VIEWFINDER & CAMERA ---------- */
-.viewfinder-container {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+.card-empty {
+  padding: 48px 20px;
+  text-align: center;
+  color: var(--muted2);
 }
+
+.card-empty svg { margin-bottom: 10px; }
+.card-empty-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--muted);
+  margin-bottom: 4px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.card-empty-sub { font-size: 12px; color: var(--muted2); }
+
+/* ---- VIEWFINDER ---- */
+.viewfinder-container { display: flex; flex-direction: column; gap: 12px; }
 
 .viewfinder {
   position: relative;
   aspect-ratio: 4/3;
-  background: var(--white);
-  border: 2px dashed var(--steel);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  transition: border-color 0.2s, background 0.2s;
+  transition: border-color 0.25s, box-shadow 0.25s;
 }
-.viewfinder.dragover {
-  border-color: var(--red);
-  background: rgba(232, 67, 45, 0.05);
+.viewfinder::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(0deg, rgba(255,255,255,0.01) 0px, rgba(255,255,255,0.01) 1px, transparent 1px, transparent 3px);
+  pointer-events: none;
 }
+.viewfinder:hover { border-color: rgba(255,61,0,0.4); box-shadow: 0 0 30px rgba(255,61,0,0.1); }
+.viewfinder.dragover { border-color: var(--orange); box-shadow: var(--glow-o); background: rgba(255,61,0,0.04); }
+
 .viewfinder img, .viewfinder video {
-  width: 100%;
-  height: 100%;
+  width: 100%; height: 100%;
   object-fit: cover;
-  display: block;
+  border-radius: 8px;
 }
-.corner { position: absolute; width: 22px; height: 22px; border-color: var(--ink); pointer-events: none; }
-.corner.tl { top: 8px; left: 8px; border-top: 3px solid; border-left: 3px solid; }
-.corner.tr { top: 8px; right: 8px; border-top: 3px solid; border-right: 3px solid; }
-.corner.bl { bottom: 8px; left: 8px; border-bottom: 3px solid; border-left: 3px solid; }
-.corner.br { bottom: 8px; right: 8px; border-bottom: 3px solid; border-right: 3px solid; }
+
+/* Corner targeting reticles */
+.reticle { position: absolute; width: 24px; height: 24px; pointer-events: none; }
+.reticle.tl { top: 10px; left: 10px; border-top: 2px solid var(--orange); border-left: 2px solid var(--orange); }
+.reticle.tr { top: 10px; right: 10px; border-top: 2px solid var(--orange); border-right: 2px solid var(--orange); }
+.reticle.bl { bottom: 10px; left: 10px; border-bottom: 2px solid var(--orange); border-left: 2px solid var(--orange); }
+.reticle.br { bottom: 10px; right: 10px; border-bottom: 2px solid var(--orange); border-right: 2px solid var(--orange); }
+
+.scan-line {
+  position: absolute;
+  left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--orange), transparent);
+  box-shadow: 0 0 8px var(--orange);
+  animation: scan 2.5s ease-in-out infinite;
+  opacity: 0;
+  pointer-events: none;
+}
+.viewfinder.scanning .scan-line { opacity: 1; }
+
+@keyframes scan {
+  0% { top: 10%; }
+  50% { top: 90%; }
+  100% { top: 10%; }
+}
 
 .vf-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: var(--muted2);
   text-align: center;
-  color: var(--steel);
-  font-size: 13px;
   padding: 20px;
+  pointer-events: none;
   user-select: none;
 }
-.vf-placeholder svg { margin-bottom: 8px; opacity: .7; }
+
+.vf-icon {
+  width: 52px; height: 52px;
+  border: 2px dashed rgba(255,61,0,0.3);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  animation: spin-border 8s linear infinite;
+  background: rgba(255,61,0,0.04);
+}
+@keyframes spin-border {
+  from { border-color: rgba(255,61,0,0.3) rgba(255,61,0,0.1) rgba(255,61,0,0.1) rgba(255,61,0,0.2); }
+  to { border-color: rgba(255,61,0,0.1) rgba(255,61,0,0.3) rgba(255,61,0,0.2) rgba(255,61,0,0.1); }
+}
+
+.vf-text {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  line-height: 1.6;
+  color: var(--muted2);
+}
 
 .camera-controls {
   display: flex;
   gap: 8px;
 }
-.camera-controls button {
-  flex: 1;
-  padding: 8px;
-  font-size: 11px;
+.camera-controls .btn { flex: 1; font-size: 14px; padding: 12px; }
+
+.presets-label {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 8px;
 }
 
-/* Preset Samples Picker */
-.presets-title {
-  font-family: 'Share Tech Mono', monospace;
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--steel);
-  margin-top: 10px;
-  margin-bottom: 6px;
-}
-.preset-chips {
+.chips {
   display: flex;
   gap: 6px;
   flex-wrap: wrap;
 }
-.chip {
-  font-family: 'Share Tech Mono', monospace;
-  font-size: 11px;
-  padding: 5px 10px;
-  background: var(--paper2);
-  border: 1px solid var(--ink);
-  cursor: pointer;
-  transition: all 0.15s;
-}
-.chip:hover {
-  background: var(--ink);
-  color: var(--white);
-}
 
-/* ---------- LED CONSOLE ---------- */
-.led-panel {
-  background: var(--bezel);
-  border-radius: 10px;
-  padding: 20px;
-  position: relative;
-  min-height: 240px;
-  box-shadow: inset 0 0 20px rgba(0,0,0,0.8), 0 8px 16px rgba(0,0,0,0.2);
-  border: 2px solid #333;
+.chip {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 6px 12px;
+  background: var(--card2);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.2s;
 }
-.led-panel::before, .led-panel::after,
-.led-panel .rivet-tl, .led-panel .rivet-br {
+.chip:hover { border-color: var(--orange); color: var(--orange); background: rgba(255,61,0,0.07); }
+.chip.selected { border-color: var(--orange); color: var(--orange); background: rgba(255,61,0,0.1); }
+
+/* ---- LED PANEL (OUTPUT DISPLAY) ---- */
+.led-panel {
+  background: #08080C;
+  border: 1px solid rgba(0,229,255,0.15);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 0 40px rgba(0,229,255,0.05), inset 0 0 40px rgba(0,0,0,0.4);
+  position: relative;
+}
+.led-panel::before {
   content: '';
   position: absolute;
-  width: 6px; height: 6px; border-radius: 50%;
-  background: rgba(255,255,255,.2);
+  inset: 0;
+  background: repeating-linear-gradient(0deg, rgba(0,229,255,0.012) 0px, rgba(0,229,255,0.012) 1px, transparent 1px, transparent 4px);
+  pointer-events: none;
 }
-.led-panel::before { top: 10px; left: 10px; }
-.led-panel::after { top: 10px; right: 10px; }
-.led-panel .rivet-tl { bottom: 10px; left: 10px; }
-.led-panel .rivet-br { bottom: 10px; right: 10px; }
 
-.led-label {
-  font-family: 'Share Tech Mono', monospace;
-  color: rgba(255,255,255,.55);
-  font-size: 10.5px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  margin-bottom: 8px;
+.led-head {
+  background: rgba(0,229,255,0.05);
+  border-bottom: 1px solid rgba(0,229,255,0.1);
+  padding: 12px 18px;
   display: flex;
   justify-content: space-between;
+  align-items: center;
 }
 
-.led-name {
-  font-family: 'IBM Plex Sans', sans-serif;
+.led-head-title {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  color: rgba(0,229,255,0.5);
+  text-transform: uppercase;
+}
+
+.led-badge {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  padding: 3px 8px;
+  border-radius: 3px;
+  background: rgba(0,229,255,0.08);
+  border: 1px solid rgba(0,229,255,0.2);
+  color: var(--neon2);
+}
+
+.led-body { padding: 20px 18px; }
+
+.led-main-name {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700;
+  font-size: 1.4rem;
+  letter-spacing: 0.03em;
   color: var(--white);
-  font-size: 18px;
-  font-weight: 600;
-  margin-bottom: 12px;
-  border-bottom: 1px solid rgba(255,255,255,0.1);
-  padding-bottom: 8px;
+  margin-bottom: 14px;
+  text-transform: uppercase;
 }
 
-.led-digits-wrap {
+.big-number {
   display: flex;
   align-items: baseline;
-  margin-bottom: 12px;
-  flex-wrap: wrap;
   gap: 8px;
+  margin-bottom: 18px;
 }
-.led-digits {
-  font-family: 'Share Tech Mono', monospace;
-  font-size: 54px;
-  font-weight: 700;
+
+.big-num {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 5rem;
   line-height: 1;
 }
-.led-digits.amber { color: var(--amber); text-shadow: var(--glow-amber); }
-.led-digits.green { color: var(--green); text-shadow: var(--glow-green); }
-.led-digits.red { color: var(--red); text-shadow: var(--glow-red); }
-.led-digits.blue { color: var(--blue); text-shadow: var(--glow-blue); }
+.big-num.orange { color: var(--orange); text-shadow: var(--glow-o); }
+.big-num.neon { color: var(--neon); text-shadow: var(--glow-n); }
+.big-num.blue { color: var(--neon2); text-shadow: var(--glow-b); }
+.big-num.yellow { color: var(--yellow); text-shadow: var(--glow-y); }
 
-.led-unit { font-family: 'Share Tech Mono', monospace; color: rgba(255,255,255,.65); font-size: 13px; }
+.big-unit {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 12px;
+  color: rgba(255,255,255,0.4);
+  letter-spacing: 0.1em;
+  margin-bottom: 8px;
+}
 
-.led-grid {
+.led-metrics {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 8px;
-  background: var(--bezel-light);
-  padding: 10px;
-  border-radius: 6px;
-  margin: 12px 0;
-  border: 1px solid rgba(255,255,255,0.05);
+  margin-bottom: 16px;
 }
 .led-metric {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.05);
+  border-radius: 4px;
+  padding: 10px;
   text-align: center;
 }
 .led-metric-lbl {
   font-family: 'Share Tech Mono', monospace;
-  font-size: 9.5px;
-  color: rgba(255,255,255,0.5);
+  font-size: 9px;
+  color: rgba(255,255,255,0.35);
+  letter-spacing: 0.1em;
   text-transform: uppercase;
+  margin-bottom: 4px;
 }
 .led-metric-val {
-  font-family: 'Share Tech Mono', monospace;
-  font-size: 15px;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.6rem;
   color: var(--white);
-  font-weight: 700;
-  margin-top: 2px;
+  line-height: 1;
 }
 
 .led-note {
-  font-family: 'IBM Plex Sans', sans-serif;
-  color: rgba(255,255,255,.65);
-  font-size: 12.5px;
-  margin-top: 12px;
-  padding-top: 10px;
-  border-top: 1px solid rgba(255,255,255,.15);
-  line-height: 1.4;
+  font-size: 12px;
+  color: rgba(255,255,255,0.35);
+  line-height: 1.55;
+  border-top: 1px solid rgba(255,255,255,0.05);
+  padding-top: 12px;
 }
-.led-empty { color: rgba(255,255,255,.4); font-size: 13px; font-family: 'IBM Plex Sans', sans-serif; padding: 20px 0; text-align: center; }
-.led-error { color: #FF8A7A; font-size: 13.5px; font-family: 'IBM Plex Sans', sans-serif; background: rgba(232, 67, 45, 0.15); padding: 10px; border-left: 3px solid var(--red); }
 
-/* ---------- DAILY LEDGER TRACKER ---------- */
-.summary-cards {
+.led-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  text-align: center;
+  color: rgba(0,229,255,0.3);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  line-height: 1.7;
+  gap: 10px;
+}
+
+.led-error {
+  background: rgba(255,23,68,0.08);
+  border: 1px solid rgba(255,23,68,0.2);
+  border-left: 3px solid var(--red);
+  padding: 12px 14px;
+  font-size: 12.5px;
+  color: #FF6B6B;
+  border-radius: 4px;
+  line-height: 1.5;
+}
+
+/* ---- PORTION SLIDER ---- */
+.slider-wrap {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 14px;
+  margin-top: 12px;
+}
+.slider-label {
+  display: flex;
+  justify-content: space-between;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+.slider-label .slider-val { color: var(--orange); font-weight: 700; }
+input[type="range"] {
+  width: 100%;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 100px;
+  outline: none;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: var(--orange);
+  cursor: pointer;
+  box-shadow: var(--glow-o);
+  transition: transform 0.15s;
+}
+input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.2); }
+input[type="range"]::-moz-range-thumb {
+  width: 18px; height: 18px;
+  border: none;
+  border-radius: 50%;
+  background: var(--orange);
+  cursor: pointer;
+}
+
+/* ---- DAILY LEDGER ---- */
+.stat-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 16px;
-  margin-bottom: 24px;
+  gap: 14px;
+  margin-bottom: 28px;
 }
 
 .stat-card {
-  background: var(--white);
-  border: 2px solid var(--ink);
-  padding: 16px;
-  box-shadow: 3px 3px 0 var(--ink);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 18px;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
-.stat-card .sc-label {
+.stat-card::before {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0;
+  right: 0;
+  height: 2px;
+}
+.stat-card.orange::before { background: linear-gradient(90deg, var(--orange), transparent); }
+.stat-card.neon::before { background: linear-gradient(90deg, var(--neon), transparent); }
+.stat-card.blue::before { background: linear-gradient(90deg, var(--neon2), transparent); }
+.stat-card.yellow::before { background: linear-gradient(90deg, var(--yellow), transparent); }
+
+.stat-card:hover { border-color: rgba(255,255,255,0.12); }
+
+.stat-lbl {
   font-family: 'Share Tech Mono', monospace;
-  font-size: 10.5px;
+  font-size: 10px;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--steel);
+  color: var(--muted);
+  margin-bottom: 8px;
 }
-.stat-card .sc-num {
+.stat-num {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 2.6rem;
+  line-height: 1;
+  margin-bottom: 2px;
+}
+.stat-num.orange { color: var(--orange); }
+.stat-num.neon { color: var(--neon); }
+.stat-num.blue { color: var(--neon2); }
+.stat-num.yellow { color: var(--yellow); }
+.stat-sub { font-size: 12px; color: var(--muted2); }
+
+/* Progress Bar */
+.energy-bar-wrap {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 18px;
+  margin-bottom: 24px;
+}
+.energy-bar-header {
+  display: flex;
+  justify-content: space-between;
   font-family: 'Share Tech Mono', monospace;
-  font-size: 32px;
-  font-weight: 700;
-  margin: 6px 0 2px;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 10px;
 }
-.stat-card .sc-sub {
-  font-size: 12px;
-  color: var(--steel);
+.energy-bar-pct { color: var(--orange); font-weight: 700; }
+.energy-bar-track {
+  height: 12px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 100px;
+  overflow: hidden;
+  position: relative;
+}
+.energy-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--orange), var(--orange2));
+  border-radius: 100px;
+  width: 0%;
+  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s;
+  box-shadow: 0 0 10px rgba(255,61,0,0.4);
+  position: relative;
+}
+.energy-bar-fill::after {
+  content: '';
+  position: absolute;
+  right: 0; top: 0; bottom: 0;
+  width: 20px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3));
+  border-radius: 100px;
 }
 
+/* Ledger Lists */
 .ledger-tables {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 24px;
+  gap: 20px;
 }
-@media (max-width: 768px) {
-  .ledger-tables { grid-template-columns: 1fr; }
-}
+@media (max-width: 768px) { .ledger-tables { grid-template-columns: 1fr; } }
 
 .ledger-box {
-  background: var(--white);
-  border: 2px solid var(--ink);
-  box-shadow: 3px 3px 0 var(--ink);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
 }
 .ledger-head {
-  background: var(--ink);
-  color: var(--white);
-  padding: 10px 14px;
-  font-family: 'Share Tech Mono', monospace;
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
+  background: rgba(255,255,255,0.03);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 16px;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--white);
 }
-.ledger-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  max-height: 280px;
-  overflow-y: auto;
-}
+.ledger-total { font-family: 'Bebas Neue', sans-serif; font-size: 1.2rem; }
+.ledger-list { list-style: none; max-height: 300px; overflow-y: auto; }
+.ledger-list::-webkit-scrollbar { width: 4px; }
+.ledger-list::-webkit-scrollbar-track { background: transparent; }
+.ledger-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 100px; }
+
 .ledger-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 14px;
-  border-bottom: 1px solid #e0e4da;
-  font-size: 13.5px;
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.03);
+  transition: background 0.15s;
 }
 .ledger-item:last-child { border-bottom: none; }
-.ledger-item-title { font-weight: 600; }
-.ledger-item-meta { font-size: 11.5px; color: var(--steel); font-family: 'Share Tech Mono', monospace; }
-.ledger-item-cal { font-family: 'Share Tech Mono', monospace; font-weight: 700; font-size: 15px; }
-.ledger-item-del {
+.ledger-item:hover { background: rgba(255,255,255,0.02); }
+.ledger-item-name { font-weight: 600; font-size: 14px; color: var(--text); }
+.ledger-item-meta { font-family: 'Share Tech Mono', monospace; font-size: 10px; color: var(--muted); margin-top: 2px; letter-spacing: 0.05em; }
+.ledger-item-cal { font-family: 'Bebas Neue', sans-serif; font-size: 1.3rem; }
+.ledger-item-cal.in { color: var(--orange); }
+.ledger-item-cal.out { color: var(--neon); }
+.del-btn {
   background: none;
   border: none;
-  color: var(--steel);
+  color: rgba(255,255,255,0.15);
   cursor: pointer;
-  padding: 4px;
   font-size: 14px;
+  padding: 4px 6px;
   transition: color 0.15s;
+  line-height: 1;
 }
-.ledger-item-del:hover { color: var(--red); }
-.ledger-empty { padding: 20px; text-align: center; color: var(--steel); font-size: 13px; }
+.del-btn:hover { color: var(--red); }
+.ledger-empty {
+  padding: 28px 16px;
+  text-align: center;
+  color: var(--muted2);
+  font-size: 13px;
+}
 
-/* ---------- AI CHAT / ASSISTANT ---------- */
-.chat-container {
-  background: var(--white);
-  border: 2px solid var(--ink);
-  box-shadow: 4px 4px 0 var(--ink);
+/* ---- AI CHAT ---- */
+.chat-wrap {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
-  height: 450px;
+  height: 460px;
+  box-shadow: 0 0 40px rgba(0,229,255,0.04);
 }
+
 .chat-messages {
   flex: 1;
   padding: 16px;
@@ -708,521 +1141,731 @@ h1 {
   flex-direction: column;
   gap: 12px;
 }
+.chat-messages::-webkit-scrollbar { width: 4px; }
+.chat-messages::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 100px; }
+
 .chat-msg {
-  max-width: 80%;
-  padding: 10px 14px;
-  font-size: 13.5px;
-  line-height: 1.45;
-  border: 1px solid var(--ink);
+  padding: 12px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  line-height: 1.5;
+  max-width: 85%;
+  animation: msg-in 0.2s ease-out;
+}
+@keyframes msg-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 .chat-msg.assistant {
+  background: var(--card2);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--neon2);
   align-self: flex-start;
-  background: var(--paper-card);
-  border-left: 4px solid var(--ink);
+  color: var(--text);
 }
 .chat-msg.user {
+  background: linear-gradient(135deg, rgba(255,61,0,0.15), rgba(255,109,0,0.1));
+  border: 1px solid rgba(255,61,0,0.2);
+  border-right: 3px solid var(--orange);
   align-self: flex-end;
-  background: var(--ink);
   color: var(--white);
-  border-right: 4px solid var(--red);
 }
-.chat-input-area {
-  display: flex;
-  border-top: 2px solid var(--ink);
-  padding: 8px;
-  gap: 8px;
-  background: var(--paper2);
-}
-.chat-input-area input {
-  flex: 1;
-  padding: 10px;
-  border: 1px solid var(--ink);
-  font-family: 'IBM Plex Sans', sans-serif;
-  font-size: 14px;
-  background: var(--white);
+.chat-msg.thinking {
+  background: var(--card2);
+  border: 1px solid var(--border);
+  align-self: flex-start;
+  color: var(--muted);
+  font-style: italic;
+  font-size: 13px;
 }
 
-/* ---------- MODAL ---------- */
+.chat-input-row {
+  display: flex;
+  gap: 8px;
+  padding: 12px;
+  border-top: 1px solid var(--border);
+  background: var(--card2);
+}
+.chat-input {
+  flex: 1;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--white);
+  font-family: 'Barlow', sans-serif;
+  font-size: 14px;
+  padding: 10px 14px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.chat-input:focus { border-color: rgba(255,61,0,0.4); }
+.chat-send-btn {
+  background: linear-gradient(135deg, var(--orange), var(--orange2));
+  border: none;
+  border-radius: 4px;
+  color: var(--white);
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 16px;
+  letter-spacing: 0.08em;
+  padding: 0 20px;
+  cursor: pointer;
+  transition: box-shadow 0.2s, transform 0.1s;
+}
+.chat-send-btn:hover { box-shadow: var(--glow-o); }
+.chat-send-btn:active { transform: scale(0.97); }
+
+/* ---- MODAL ---- */
 .modal-overlay {
-  position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0,0,0,0.6);
-  z-index: 1000;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.8);
+  backdrop-filter: blur(6px);
+  z-index: 999;
   display: flex;
   align-items: center;
   justify-content: center;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.2s ease;
+  transition: opacity 0.2s;
 }
-.modal-overlay.active {
-  opacity: 1;
-  pointer-events: auto;
-}
-.modal {
-  background: var(--paper);
-  border: 3px solid var(--ink);
-  width: 90%;
-  max-width: 500px;
-  padding: 24px;
-  box-shadow: 8px 8px 0 var(--ink);
-}
-.modal-title {
-  font-family: 'Big Shoulders Display', sans-serif;
-  font-size: 24px;
-  font-weight: 800;
-  margin: 0 0 12px;
-  text-transform: uppercase;
-}
+.modal-overlay.active { opacity: 1; pointer-events: auto; }
 
-/* ---------- FOOTER ---------- */
-.footer-note {
+.modal {
+  background: var(--card);
+  border: 1px solid rgba(255,61,0,0.2);
+  border-radius: 10px;
+  width: 90%;
+  max-width: 480px;
+  padding: 28px;
+  box-shadow: 0 0 60px rgba(255,61,0,0.15);
+  transform: scale(0.95);
+  transition: transform 0.2s;
+}
+.modal-overlay.active .modal { transform: scale(1); }
+
+.modal-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 2rem;
+  letter-spacing: 0.06em;
+  color: var(--white);
+  margin-bottom: 6px;
+}
+.modal-sub { font-size: 13px; color: var(--muted); margin-bottom: 20px; line-height: 1.5; }
+
+.modal-btns { display: flex; gap: 10px; margin-top: 20px; }
+
+/* ---- FOOTER ---- */
+.footer {
+  border-top: 1px solid var(--border);
   padding: 20px 0;
-  margin-top: 30px;
-  border-top: 2px solid var(--ink);
-  font-size: 12px;
-  color: var(--steel);
-  text-align: center;
   display: flex;
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
   gap: 12px;
 }
+.footer-left { font-family: 'Share Tech Mono', monospace; font-size: 11px; color: var(--muted); letter-spacing: 0.08em; }
+.footer-right { font-size: 11px; color: var(--muted2); }
 </style>
 </head>
 <body>
 
-<div class="wrap">
+<!-- Particle Canvas -->
+<canvas id="particle-canvas"></canvas>
 
-  <!-- Top Bar -->
+<div class="page-wrap">
+
+  <!-- TOP BAR -->
   <div class="top-bar">
-    <div class="top-bar-left">
-      <div class="status-indicator">
-        <span class="dot" id="api-status-dot"></span>
-        <span id="api-status-text">Gemini 2.5 AI Ready</span>
-      </div>
+    <div class="brand">
+      <div class="brand-logo">⚡</div>
+      <div class="brand-name">IRON<span>LOG</span></div>
     </div>
     <div class="top-bar-right">
-      <button class="icon-btn" id="btn-sound-toggle">🔊 Sound: ON</button>
-      <button class="icon-btn" id="btn-key-settings">⚙️ API Key</button>
+      <div class="status-pill" id="api-status-pill">
+        <span class="pulse-dot" id="status-dot"></span>
+        <span id="status-text">AI READY</span>
+      </div>
+      <button class="icon-btn" id="btn-sound">🔊 SFX ON</button>
+      <button class="icon-btn" id="btn-api-key">⚙ API KEY</button>
     </div>
   </div>
 
-  <!-- Header -->
-  <div class="header">
-    <div class="eyebrow">Precision Energy Accounting</div>
-    <h1>ENERGY LEDGER <span class="badge-ai">GEMINI 2.5 AI</span></h1>
-    <div class="subtitle">Log daily energy expenditure & intake with AI-powered computer vision. Snap meals & gym machines or calculate BMR/TDEE instantly.</div>
+  <!-- HERO -->
+  <div class="hero-content">
+    <div class="hero-eyebrow">Gemini 2.5 Vision · Precision Athletics</div>
+    <h1 class="hero-title">FUEL YOUR<br><span class="highlight">BEAST MODE</span></h1>
+    <p class="hero-sub">AI-powered calorie intelligence. Snap your plate, scan the machine, crush your macros. No excuses.</p>
   </div>
 
-  <!-- Tabs Navigation -->
+</div><!-- /page-wrap -->
+
+<!-- TABS (sticky, full-width) -->
+<div class="tabs-wrapper">
   <div class="tabs">
-    <button class="tab-btn active" data-tab="intake">⚡ Intake Calculator</button>
+    <button class="tab-btn active" data-tab="intake">⚡ TDEE Calculator</button>
     <button class="tab-btn" data-tab="food">🥗 Scan Food</button>
-    <button class="tab-btn" data-tab="machine">🏋️ Scan Machine</button>
-    <button class="tab-btn" data-tab="ledger">📊 Daily Ledger (<span id="tab-ledger-count">0</span>)</button>
-    <button class="tab-btn" data-tab="coach">🤖 Gemini Coach</button>
+    <button class="tab-btn" data-tab="machine">🏋 Scan Machine</button>
+    <button class="tab-btn" data-tab="ledger">📊 Ledger <span class="tab-count" id="tab-count">0</span></button>
+    <button class="tab-btn" data-tab="coach">🤖 AI Coach</button>
   </div>
+</div>
 
-  <!-- ===================== TAB 1: DAILY INTAKE CALCULATOR ===================== -->
+<div class="page-wrap">
+
+  <!-- ========== PANEL: INTAKE CALCULATOR ========== -->
   <div class="panel active" id="panel-intake">
     <div class="layout">
+
+      <!-- LEFT: Form -->
       <div>
-        <div class="field">
-          <label for="in-name">User Profile Name</label>
-          <input type="text" id="in-name" placeholder="e.g. Aarav" value="Aarav">
+        <div class="section-header">
+          <div class="section-title">YOUR NUMBERS</div>
+          <div class="section-sub">Calculate your precise daily energy budget</div>
         </div>
 
         <div class="field">
-          <label>Biological Sex</label>
+          <label>Athlete Name</label>
+          <input type="text" id="in-name" value="Aarav" placeholder="Your name">
+        </div>
+
+        <div class="field">
+          <label>Sex</label>
           <div class="segmented" id="sex-toggle">
-            <button type="button" class="active" data-val="male">Male</button>
-            <button type="button" data-val="female">Female</button>
+            <button class="active" data-val="male">♂ Male</button>
+            <button data-val="female">♀ Female</button>
           </div>
         </div>
 
         <div class="grid2">
           <div class="field">
-            <label for="in-age">Age (years)</label>
-            <input type="number" id="in-age" min="10" max="100" placeholder="28" value="28">
+            <label>Age (years)</label>
+            <input type="number" id="in-age" value="25" min="10" max="100">
           </div>
           <div class="field">
-            <label for="in-weight">Weight (kg)</label>
-            <input type="number" id="in-weight" min="20" max="300" placeholder="70" value="70">
+            <label>Weight (kg)</label>
+            <input type="number" id="in-weight" value="80" min="20" max="300">
           </div>
         </div>
 
         <div class="field">
-          <label for="in-height">Height (cm)</label>
-          <input type="number" id="in-height" min="100" max="230" placeholder="175" value="175">
+          <label>Height (cm)</label>
+          <input type="number" id="in-height" value="178" min="100" max="230">
         </div>
 
         <div class="field">
-          <label for="in-activity">Activity level</label>
+          <label>Activity Level</label>
           <select id="in-activity">
-            <option value="1.2">Sedentary — little or no exercise</option>
-            <option value="1.375">Light — exercise 1–3 days/wk</option>
-            <option value="1.55" selected>Moderate — exercise 3–5 days/wk</option>
-            <option value="1.725">Active — exercise 6–7 days/wk</option>
-            <option value="1.9">Very active — hard physical job / 2x day training</option>
+            <option value="1.2">Sedentary — Desk job, no exercise</option>
+            <option value="1.375">Light — 1-3 days/week</option>
+            <option value="1.55" selected>Moderate — 3-5 days/week</option>
+            <option value="1.725">Active — 6-7 days/week</option>
+            <option value="1.9">Athlete — 2x daily / hard labor</option>
           </select>
         </div>
 
         <div class="field">
-          <label for="in-goal">Primary Fitness Goal</label>
+          <label>Goal</label>
           <select id="in-goal">
-            <option value="maintain" selected>Maintain Weight (TDEE Target)</option>
-            <option value="lose_mild">Mild Weight Loss (-250 kcal/day)</option>
-            <option value="lose_standard">Weight Loss (-500 kcal/day)</option>
-            <option value="gain_mild">Lean Muscle Gain (+250 kcal/day)</option>
-            <option value="gain_standard">Aggressive Mass Gain (+500 kcal/day)</option>
+            <option value="maintain">Maintain — Eat at TDEE</option>
+            <option value="lose_mild">Cut Mild — -250 kcal/day</option>
+            <option value="lose_standard">Cut Hard — -500 kcal/day</option>
+            <option value="gain_mild">Lean Bulk — +250 kcal/day</option>
+            <option value="gain_standard">Mass Gain — +500 kcal/day</option>
           </select>
         </div>
 
-        <button class="btn" id="btn-calc">Calculate Target Budget</button>
+        <button class="btn" id="btn-calc">⚡ CALCULATE MY BUDGET</button>
       </div>
 
+      <!-- RIGHT: Results -->
       <div>
-        <div class="facts-panel" id="facts-panel">
-          <!-- Populated by JavaScript -->
+        <div class="section-header">
+          <div class="section-title">ENERGY PROFILE</div>
+          <div class="section-sub">Your personalized macro targets</div>
+        </div>
+        <div class="result-card" id="result-card">
+          <div class="card-empty" id="result-empty">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="rgba(255,61,0,0.3)" stroke-width="1.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+            <div class="card-empty-title">No Results Yet</div>
+            <div class="card-empty-sub">Fill in your stats and hit Calculate</div>
+          </div>
+          <div id="result-content" style="display:none;">
+            <div class="rc-head">
+              <div class="rc-eyebrow">Energy Profile</div>
+              <div class="rc-name" id="rc-name">—</div>
+              <div class="rc-serving" id="rc-serving">—</div>
+            </div>
+            <div class="calorie-display">
+              <div class="calorie-ring">
+                <svg viewBox="0 0 120 120">
+                  <circle class="ring-bg" cx="60" cy="60" r="52"/>
+                  <circle class="ring-fill" id="ring-fill" cx="60" cy="60" r="52"/>
+                </svg>
+                <div class="calorie-center">
+                  <div class="calorie-num" id="rc-cal">—</div>
+                  <div class="calorie-unit">KCAL</div>
+                </div>
+              </div>
+              <div style="font-family:'Share Tech Mono',monospace; font-size:11px; color:var(--muted); letter-spacing:0.1em; text-align:center;" id="rc-goal-label">—</div>
+            </div>
+            <div class="macro-section">
+              <div class="macro-row">
+                <div class="macro-lbl">Protein</div>
+                <div class="macro-bar-track"><div class="macro-bar-fill protein" id="bar-protein"></div></div>
+                <div class="macro-val" id="lbl-protein">—</div>
+              </div>
+              <div class="macro-row">
+                <div class="macro-lbl">Carbs</div>
+                <div class="macro-bar-track"><div class="macro-bar-fill carbs" id="bar-carbs"></div></div>
+                <div class="macro-val" id="lbl-carbs">—</div>
+              </div>
+              <div class="macro-row">
+                <div class="macro-lbl">Fat</div>
+                <div class="macro-bar-track"><div class="macro-bar-fill fat" id="bar-fat"></div></div>
+                <div class="macro-val" id="lbl-fat">—</div>
+              </div>
+            </div>
+            <div class="facts-rows">
+              <div class="facts-row"><span class="lbl">BMR (Base Metabolic Rate)</span><span class="val" id="rc-bmr">—</span></div>
+              <div class="facts-row"><span class="lbl">TDEE (Maintenance)</span><span class="val" id="rc-tdee">—</span></div>
+              <div class="facts-row"><span class="lbl">Daily Water Target</span><span class="val" id="rc-water">—</span></div>
+            </div>
+          </div>
         </div>
       </div>
+
     </div>
   </div>
 
-  <!-- ===================== TAB 2: SCAN FOOD ===================== -->
+  <!-- ========== PANEL: SCAN FOOD ========== -->
   <div class="panel" id="panel-food">
     <div class="layout">
       <div class="viewfinder-container">
+        <div class="section-header">
+          <div class="section-title">SCAN YOUR PLATE</div>
+          <div class="section-sub">Upload, drag, or live-snap a meal</div>
+        </div>
+
         <div class="viewfinder" id="vf-food">
-          <div class="corner tl"></div><div class="corner tr"></div>
-          <div class="corner bl"></div><div class="corner br"></div>
-          <div class="vf-placeholder" id="vf-food-placeholder">
-            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 8h3l1.5-2h7L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13" r="3.4"/></svg>
-            <div>Drop meal photo here, tap to upload,<br>or use Live Web Camera</div>
+          <div class="reticle tl"></div><div class="reticle tr"></div>
+          <div class="reticle bl"></div><div class="reticle br"></div>
+          <div class="scan-line"></div>
+          <div class="vf-placeholder" id="vf-food-ph">
+            <div class="vf-icon">🍽</div>
+            <div class="vf-text">DROP MEAL PHOTO HERE<br>or tap to upload · use camera below</div>
           </div>
           <video id="webcam-food" style="display:none;" autoplay playsinline></video>
         </div>
+        <input type="file" accept="image/*" id="input-food" style="display:none">
 
         <div class="camera-controls">
-          <button class="btn btn-secondary" id="btn-webcam-food">📷 Live Cam</button>
-          <button class="btn btn-secondary" id="btn-snap-food" style="display:none;">📸 Snap Photo</button>
+          <button class="btn btn-ghost" id="btn-cam-food">📷 LIVE CAMERA</button>
+          <button class="btn btn-ghost" id="btn-snap-food" style="display:none;">📸 SNAP PHOTO</button>
         </div>
 
-        <input type="file" accept="image/*" capture="environment" id="input-food" style="display:none;">
-
-        <div class="presets-title">Quick Preset Demo Meals:</div>
-        <div class="preset-chips">
+        <div class="presets-label" style="margin-top:14px;">Demo Meals — Quick Preview</div>
+        <div class="chips">
           <button class="chip" data-preset-food="grilled_chicken">🍗 Chicken & Rice</button>
           <button class="chip" data-preset-food="avocado_toast">🥑 Avocado Toast</button>
-          <button class="chip" data-preset-food="salmon_salad">🥗 Salmon Salad</button>
-          <button class="chip" data-preset-food="burger">🍔 Cheeseburger</button>
+          <button class="chip" data-preset-food="salmon_salad">🥗 Salmon Bowl</button>
+          <button class="chip" data-preset-food="burger">🍔 Burger</button>
         </div>
 
-        <button class="btn" id="btn-analyze-food" disabled>⚡ Analyze Meal with Gemini AI</button>
+        <button class="btn" id="btn-analyze-food" disabled style="margin-top:14px;">🔍 ANALYZE WITH GEMINI AI</button>
       </div>
 
       <div>
+        <div class="section-header">
+          <div class="section-title">NUTRITION SCAN</div>
+          <div class="section-sub">AI vision output</div>
+        </div>
+
         <div class="led-panel">
-          <div class="rivet-tl"></div><div class="rivet-br"></div>
-          <div class="led-label">
-            <span>Food Scan · Vision Output</span>
-            <span id="food-confidence-badge">--</span>
+          <div class="led-head">
+            <div class="led-head-title">Food Vision · Gemini 2.5</div>
+            <div class="led-badge" id="food-confidence">STANDBY</div>
           </div>
-          <div id="led-food-body">
-            <div class="led-empty">Upload or snap a plate of food to estimate nutritional intake.</div>
+          <div class="led-body" id="led-food-body">
+            <div class="led-empty">
+              <div style="font-size:28px; opacity:0.4;">🥗</div>
+              <div>AWAITING FOOD SCAN<br>UPLOAD AN IMAGE TO BEGIN</div>
+            </div>
           </div>
         </div>
 
-        <div id="food-portion-controls" style="display:none; margin-top:16px; background:var(--white); border:2px solid var(--ink); padding:14px;">
-          <div class="field" style="margin-bottom:10px;">
-            <label>Portion Multiplier Adjustment</label>
-            <div class="range-wrap">
-              <input type="range" id="food-portion-slider" min="0.25" max="3.0" step="0.25" value="1.0">
-              <span class="range-val" id="food-portion-val">1.0x</span>
+        <div id="food-portion-wrap" style="display:none; margin-top:12px;">
+          <div class="slider-wrap">
+            <div class="slider-label">
+              <span>PORTION MULTIPLIER</span>
+              <span class="slider-val" id="portion-val-lbl">1.00x</span>
             </div>
+            <input type="range" id="food-portion-slider" min="0.25" max="3.0" step="0.25" value="1.0">
           </div>
-          <button class="btn btn-success" id="btn-log-food">➕ Add Meal to Daily Ledger</button>
+          <button class="btn btn-neon" id="btn-log-food" style="margin-top:10px;">➕ LOG MEAL TO LEDGER</button>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- ===================== TAB 3: SCAN MACHINE ===================== -->
+  <!-- ========== PANEL: SCAN MACHINE ========== -->
   <div class="panel" id="panel-machine">
     <div class="layout">
       <div class="viewfinder-container">
+        <div class="section-header">
+          <div class="section-title">SCAN EQUIPMENT</div>
+          <div class="section-sub">Point at any gym machine or equipment</div>
+        </div>
+
         <div class="viewfinder" id="vf-machine">
-          <div class="corner tl"></div><div class="corner tr"></div>
-          <div class="corner bl"></div><div class="corner br"></div>
-          <div class="vf-placeholder" id="vf-machine-placeholder">
-            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="10" width="4" height="4"/><rect x="17" y="10" width="4" height="4"/><path d="M7 12h10"/><path d="M9 8v8"/><path d="M15 8v8"/></svg>
-            <div>Drop equipment photo here, tap to upload,<br>or use Live Web Camera</div>
+          <div class="reticle tl"></div><div class="reticle tr"></div>
+          <div class="reticle bl"></div><div class="reticle br"></div>
+          <div class="scan-line"></div>
+          <div class="vf-placeholder" id="vf-machine-ph">
+            <div class="vf-icon">🏋</div>
+            <div class="vf-text">DROP MACHINE PHOTO HERE<br>or tap to upload · use camera below</div>
           </div>
           <video id="webcam-machine" style="display:none;" autoplay playsinline></video>
         </div>
+        <input type="file" accept="image/*" id="input-machine" style="display:none">
 
         <div class="camera-controls">
-          <button class="btn btn-secondary" id="btn-webcam-machine">📷 Live Cam</button>
-          <button class="btn btn-secondary" id="btn-snap-machine" style="display:none;">📸 Snap Photo</button>
+          <button class="btn btn-ghost" id="btn-cam-machine">📷 LIVE CAMERA</button>
+          <button class="btn btn-ghost" id="btn-snap-machine" style="display:none;">📸 SNAP PHOTO</button>
         </div>
 
-        <input type="file" accept="image/*" capture="environment" id="input-machine" style="display:none;">
-
-        <div class="presets-title">Quick Preset Demo Machines:</div>
-        <div class="preset-chips">
+        <div class="presets-label" style="margin-top:14px;">Demo Equipment</div>
+        <div class="chips">
           <button class="chip" data-preset-machine="treadmill">🏃 Treadmill</button>
-          <button class="chip" data-preset-machine="exercise_bike">🚴 Bike Ergometer</button>
-          <button class="chip" data-preset-machine="rowing">🚣 Rowing Machine</button>
+          <button class="chip" data-preset-machine="exercise_bike">🚴 Bike Ergo</button>
+          <button class="chip" data-preset-machine="rowing">🚣 Rowing</button>
           <button class="chip" data-preset-machine="elliptical">⚡ Elliptical</button>
         </div>
 
-        <div class="scan-controls" style="margin-top:10px;">
+        <div style="background:var(--card); border:1px solid var(--border); border-radius:6px; padding:14px; margin-top:14px;">
           <div class="grid2">
-            <div class="field">
-              <label for="m-weight">Your Body Weight (kg)</label>
-              <input type="number" id="m-weight" min="20" max="300" value="70">
+            <div class="field" style="margin-bottom:10px;">
+              <label>Body Weight (kg)</label>
+              <input type="number" id="m-weight" value="80" min="20" max="300">
             </div>
-            <div class="field">
-              <label for="m-duration">Workout Duration (min)</label>
-              <input type="number" id="m-duration" min="1" max="300" value="30">
+            <div class="field" style="margin-bottom:10px;">
+              <label>Duration (min)</label>
+              <input type="number" id="m-duration" value="30" min="1" max="300">
             </div>
           </div>
-
-          <div class="field">
-            <label for="m-intensity">Workout Intensity Level</label>
+          <div class="field" style="margin-bottom:0;">
+            <label>Intensity</label>
             <select id="m-intensity">
-              <option value="0.85">Light Effort (Casual Pace)</option>
-              <option value="1.0" selected>Moderate Effort (Standard Exercise)</option>
-              <option value="1.20">Vigorous Effort (High Heart Rate)</option>
-              <option value="1.40">Max Effort / HIIT Sprint Intervals</option>
+              <option value="0.85">Light — Easy Pace</option>
+              <option value="1.0" selected>Moderate — Standard</option>
+              <option value="1.20">Vigorous — High HR</option>
+              <option value="1.40">MAX — HIIT / Intervals</option>
             </select>
           </div>
-
-          <button class="btn" id="btn-analyze-machine" disabled>⚡ Analyze Equipment with Gemini AI</button>
         </div>
+
+        <button class="btn" id="btn-analyze-machine" disabled style="margin-top:14px;">🔍 ANALYZE WITH GEMINI AI</button>
       </div>
 
       <div>
+        <div class="section-header">
+          <div class="section-title">BURN OUTPUT</div>
+          <div class="section-sub">Caloric expenditure estimate</div>
+        </div>
+
         <div class="led-panel">
-          <div class="rivet-tl"></div><div class="rivet-br"></div>
-          <div class="led-label">
-            <span>Machine Scan · Vision Output</span>
-            <span id="machine-met-badge">--</span>
+          <div class="led-head">
+            <div class="led-head-title">Machine Vision · Gemini 2.5</div>
+            <div class="led-badge" id="machine-met-badge">STANDBY</div>
           </div>
-          <div id="led-machine-body">
-            <div class="led-empty">Upload or snap a gym machine to compute caloric energy expenditure.</div>
+          <div class="led-body" id="led-machine-body">
+            <div class="led-empty">
+              <div style="font-size:28px; opacity:0.4;">🏋</div>
+              <div>AWAITING EQUIPMENT SCAN<br>UPLOAD AN IMAGE TO BEGIN</div>
+            </div>
           </div>
         </div>
 
-        <div id="machine-log-controls" style="display:none; margin-top:16px;">
-          <button class="btn btn-success" id="btn-log-machine">🏋️ Add Workout to Daily Ledger</button>
+        <div id="machine-log-wrap" style="display:none; margin-top:12px;">
+          <button class="btn btn-neon" id="btn-log-machine">🔥 LOG WORKOUT TO LEDGER</button>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- ===================== TAB 4: DAILY LEDGER HISTORY ===================== -->
+  <!-- ========== PANEL: DAILY LEDGER ========== -->
   <div class="panel" id="panel-ledger">
-    <div class="summary-cards">
-      <div class="stat-card">
-        <div class="sc-label">Target Energy Budget</div>
-        <div class="sc-num" id="stat-target-cal">2,200</div>
-        <div class="sc-sub">kcal / day (TDEE)</div>
-      </div>
+    <div class="section-header">
+      <div class="section-title">TODAY'S ENERGY LEDGER</div>
+      <div class="section-sub">Live calorie balance tracking</div>
+    </div>
 
-      <div class="stat-card">
-        <div class="sc-label">Calories Consumed (Intake)</div>
-        <div class="sc-num" style="color:var(--amber);" id="stat-intake-cal">0</div>
-        <div class="sc-sub" id="stat-intake-sub">0 meals logged</div>
+    <div class="stat-grid">
+      <div class="stat-card orange">
+        <div class="stat-lbl">Target Budget</div>
+        <div class="stat-num orange" id="stat-target">2,200</div>
+        <div class="stat-sub">kcal / day</div>
       </div>
-
-      <div class="stat-card">
-        <div class="sc-label">Calories Burned (Workouts)</div>
-        <div class="sc-num" style="color:var(--green);" id="stat-burn-cal">0</div>
-        <div class="sc-sub" id="stat-burn-sub">0 workouts logged</div>
+      <div class="stat-card yellow">
+        <div class="stat-lbl">Calories In</div>
+        <div class="stat-num yellow" id="stat-in">0</div>
+        <div class="stat-sub" id="stat-in-sub">0 meals logged</div>
       </div>
-
-      <div class="stat-card">
-        <div class="sc-label">Net Energy Balance</div>
-        <div class="sc-num" id="stat-net-cal">0</div>
-        <div class="sc-sub" id="stat-net-status">Balanced</div>
+      <div class="stat-card neon">
+        <div class="stat-lbl">Calories Burned</div>
+        <div class="stat-num neon" id="stat-out">0</div>
+        <div class="stat-sub" id="stat-out-sub">0 workouts</div>
+      </div>
+      <div class="stat-card blue">
+        <div class="stat-lbl">Net Balance</div>
+        <div class="stat-num blue" id="stat-net">0</div>
+        <div class="stat-sub" id="stat-net-sub">Balanced</div>
       </div>
     </div>
 
-    <!-- Energy Gauge Progress Bar -->
-    <div style="background:var(--white); border:2px solid var(--ink); padding:16px; margin-bottom:24px; box-shadow:3px 3px 0 var(--ink);">
-      <div style="display:flex; justify-content:space-between; font-family:'Share Tech Mono', monospace; font-size:11px; margin-bottom:6px;">
-        <span>DAILY CALORIE BUDGET PROGRESS</span>
-        <span id="ledger-progress-percent">0%</span>
+    <div class="energy-bar-wrap">
+      <div class="energy-bar-header">
+        <span>DAILY CALORIE BUDGET USAGE</span>
+        <span class="energy-bar-pct" id="bar-pct">0%</span>
       </div>
-      <div style="height:20px; background:var(--paper2); border:1px solid var(--ink); position:relative; overflow:hidden;">
-        <div id="ledger-progress-bar" style="height:100%; width:0%; background:var(--amber); transition:width 0.4s ease, background 0.3s;"></div>
+      <div class="energy-bar-track">
+        <div class="energy-bar-fill" id="energy-bar-fill"></div>
       </div>
     </div>
 
     <div class="ledger-tables">
-      <!-- Meals Log Box -->
       <div class="ledger-box">
         <div class="ledger-head">
-          <span>🥗 Logged Meals</span>
-          <span id="ledger-meals-total">0 kcal</span>
+          🥗 Meals
+          <span class="ledger-total" style="color:var(--orange);" id="meals-total">0 kcal</span>
         </div>
-        <ul class="ledger-list" id="ledger-meals-list">
-          <li class="ledger-empty">No food items logged today yet.</li>
+        <ul class="ledger-list" id="meals-list">
+          <li class="ledger-empty">No meals logged today.</li>
         </ul>
       </div>
-
-      <!-- Workouts Log Box -->
       <div class="ledger-box">
         <div class="ledger-head">
-          <span>🏋️ Logged Workouts</span>
-          <span id="ledger-workouts-total">0 kcal</span>
+          🏋 Workouts
+          <span class="ledger-total" style="color:var(--neon);" id="workouts-total">0 kcal</span>
         </div>
-        <ul class="ledger-list" id="ledger-workouts-list">
-          <li class="ledger-empty">No workouts logged today yet.</li>
+        <ul class="ledger-list" id="workouts-list">
+          <li class="ledger-empty">No workouts logged today.</li>
         </ul>
       </div>
     </div>
 
-    <div style="margin-top:20px; display:flex; gap:12px; justify-content:flex-end;">
-      <button class="btn btn-secondary" style="width:auto;" id="btn-clear-ledger">🗑️ Reset Daily Log</button>
+    <div style="display:flex; justify-content:flex-end; margin-top:18px;">
+      <button class="btn btn-ghost" style="width:auto; min-width:180px;" id="btn-clear">🗑 RESET TODAY'S LOG</button>
     </div>
   </div>
 
-  <!-- ===================== TAB 5: GEMINI AI COACH ===================== -->
+  <!-- ========== PANEL: AI COACH ========== -->
   <div class="panel" id="panel-coach">
     <div class="layout">
       <div>
-        <h3 style="font-family:'Big Shoulders Display', sans-serif; font-size:24px; margin:0 0 10px; text-transform:uppercase;">Gemini Fitness Assistant</h3>
-        <p style="color:var(--steel); font-size:14px; margin-bottom:16px;">Ask Gemini 2.5 AI for personalized nutrition advice, workout tips, or meal recommendations based on your current daily log.</p>
-
-        <div class="preset-chips" style="margin-bottom:16px;">
-          <button class="chip" data-ask="How can I optimize my protein intake today?">💡 How to boost protein?</button>
-          <button class="chip" data-ask="What is a good post-workout meal idea?">🍱 Post-workout meal idea</button>
-          <button class="chip" data-ask="Am I in a healthy calorie deficit?">📉 Check my calorie deficit</button>
+        <div class="section-header">
+          <div class="section-title">GEMINI AI COACH</div>
+          <div class="section-sub">Your personal nutrition and training expert, powered by Gemini 2.5 Flash. Ask anything — it knows your current log.</div>
         </div>
-      </div>
 
-      <div class="chat-container">
-        <div class="chat-messages" id="chat-messages">
-          <div class="chat-msg assistant">
-            Hello! I'm your Gemini 2.5 AI Health Coach. I have live access to your daily calorie target and logged meals. How can I assist your training or diet today?
+        <div class="presets-label">Quick-fire questions:</div>
+        <div class="chips" style="margin-bottom:16px;">
+          <button class="chip" data-ask="How should I split my macros for muscle gain?">💪 Macro Split?</button>
+          <button class="chip" data-ask="What's the best post-workout meal for muscle recovery?">🍱 Post-Workout Meal?</button>
+          <button class="chip" data-ask="Am I in an ideal calorie deficit for fat loss?">📉 My Deficit OK?</button>
+          <button class="chip" data-ask="How much protein do I need today based on my weight?">🥩 Protein Target?</button>
+          <button class="chip" data-ask="Should I do cardio or weights first in the gym?">🏋 Cardio or Weights?</button>
+        </div>
+
+        <div style="background:var(--card); border:1px solid var(--border); border-radius:8px; padding:16px;">
+          <div style="font-family:'Share Tech Mono',monospace; font-size:10px; letter-spacing:0.1em; color:var(--muted); margin-bottom:12px; text-transform:uppercase;">Your Live Session Data</div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+            <div style="background:var(--bg3); border-radius:4px; padding:10px;">
+              <div style="font-family:'Share Tech Mono',monospace; font-size:10px; color:var(--muted); margin-bottom:4px;">TARGET</div>
+              <div style="font-family:'Bebas Neue',sans-serif; font-size:1.4rem; color:var(--orange);" id="coach-target">2,200 kcal</div>
+            </div>
+            <div style="background:var(--bg3); border-radius:4px; padding:10px;">
+              <div style="font-family:'Share Tech Mono',monospace; font-size:10px; color:var(--muted); margin-bottom:4px;">CONSUMED</div>
+              <div style="font-family:'Bebas Neue',sans-serif; font-size:1.4rem; color:var(--yellow);" id="coach-in">0 kcal</div>
+            </div>
+            <div style="background:var(--bg3); border-radius:4px; padding:10px;">
+              <div style="font-family:'Share Tech Mono',monospace; font-size:10px; color:var(--muted); margin-bottom:4px;">BURNED</div>
+              <div style="font-family:'Bebas Neue',sans-serif; font-size:1.4rem; color:var(--neon);" id="coach-out">0 kcal</div>
+            </div>
+            <div style="background:var(--bg3); border-radius:4px; padding:10px;">
+              <div style="font-family:'Share Tech Mono',monospace; font-size:10px; color:var(--muted); margin-bottom:4px;">NET</div>
+              <div style="font-family:'Bebas Neue',sans-serif; font-size:1.4rem; color:var(--neon2);" id="coach-net">0 kcal</div>
+            </div>
           </div>
         </div>
-        <div class="chat-input-area">
-          <input type="text" id="chat-input" placeholder="Ask Gemini about your nutrition or exercise...">
-          <button class="btn" style="width:auto; margin:0;" id="btn-chat-send">Send</button>
+      </div>
+
+      <div>
+        <div class="chat-wrap">
+          <div class="chat-messages" id="chat-messages">
+            <div class="chat-msg assistant">
+              What's up! I'm your Gemini AI Coach — I have live data on your calorie target, meals, and workouts. Let's build that physique. Ask me anything. 💪
+            </div>
+          </div>
+          <div class="chat-input-row">
+            <input class="chat-input" type="text" id="chat-input" placeholder="Ask about nutrition, training, recovery...">
+            <button class="chat-send-btn" id="btn-chat-send">SEND</button>
+          </div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Footer -->
-  <div class="footer-note">
-    <div>Energy Ledger AI powered by Google Gemini 2.5 Flash API</div>
-    <div>All energy values are mathematical approximations & computer vision estimates. Not medical advice.</div>
+  <!-- FOOTER -->
+  <div class="footer">
+    <div class="footer-left">IRONLOG · POWERED BY GOOGLE GEMINI 2.5 FLASH</div>
+    <div class="footer-right">Estimates only — not medical advice</div>
   </div>
 
-</div>
+</div><!-- /page-wrap -->
 
-<!-- API KEY SETTINGS MODAL -->
+<!-- API KEY MODAL -->
 <div class="modal-overlay" id="key-modal">
   <div class="modal">
-    <h3 class="modal-title">Gemini API Key Configuration</h3>
-    <p style="font-size:13px; color:var(--steel); margin-bottom:16px;">Your Gemini API key empowers multimodal vision analysis for food and exercise equipment.</p>
-    
+    <div class="modal-title">⚙ API KEY CONFIG</div>
+    <div class="modal-sub">Paste your Google Gemini API key to enable AI vision analysis for food and gym equipment. Get one free at <a href="https://aistudio.google.com" target="_blank" style="color:var(--orange);">aistudio.google.com</a></div>
     <div class="field">
-      <label for="input-api-key">Gemini API Key</label>
-      <input type="text" id="input-api-key" placeholder="AQ.Ab8RN6J9..." style="font-family:'Share Tech Mono', monospace; font-size:13px;">
+      <label>Gemini API Key</label>
+      <input type="text" id="input-api-key" placeholder="Paste your API key..." style="font-family:'Share Tech Mono',monospace; font-size:13px;">
     </div>
-
-    <div style="display:flex; gap:10px; margin-top:20px;">
-      <button class="btn" id="btn-save-key">Save Key</button>
-      <button class="btn btn-secondary" id="btn-close-key">Cancel</button>
+    <div class="modal-btns">
+      <button class="btn" id="btn-save-key" style="flex:1;">SAVE KEY</button>
+      <button class="btn btn-ghost" id="btn-close-modal" style="flex:0.5; margin-top:0;">CANCEL</button>
     </div>
   </div>
 </div>
 
 <script>
-// ==================== STATE MANAGEMENT ====================
-// ⚠️ Enter your Gemini API key via the ⚙️ API Key button in the top bar, or paste it here for local use only.
-// Get your key at: https://aistudio.google.com/
-const DEFAULT_API_KEY = "";
+// ========================== PARTICLES ==========================
+const canvas = document.getElementById('particle-canvas');
+const pctx = canvas.getContext('2d');
+let particles = [];
+let animFrame;
 
+function resizeCanvas() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+
+function createParticle() {
+  return {
+    x: Math.random() * canvas.width,
+    y: Math.random() * canvas.height,
+    vx: (Math.random() - 0.5) * 0.4,
+    vy: -Math.random() * 0.5 - 0.1,
+    size: Math.random() * 2 + 0.5,
+    life: 1,
+    decay: Math.random() * 0.003 + 0.001,
+    hue: Math.random() > 0.6 ? 15 : Math.random() > 0.5 ? 160 : 195, // orange, neon, blue
+  };
+}
+
+for (let i = 0; i < 80; i++) particles.push(createParticle());
+
+function animateParticles() {
+  pctx.clearRect(0, 0, canvas.width, canvas.height);
+  particles.forEach((p, i) => {
+    p.x += p.vx;
+    p.y += p.vy;
+    p.life -= p.decay;
+    if (p.life <= 0 || p.y < -10) particles[i] = createParticle();
+    pctx.beginPath();
+    pctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+    pctx.fillStyle = `hsla(${p.hue}, 100%, 65%, ${p.life * 0.7})`;
+    pctx.fill();
+  });
+  animFrame = requestAnimationFrame(animateParticles);
+}
+animateParticles();
+
+// ========================== STATE ==========================
 const state = {
-  apiKey: localStorage.getItem('energy_ledger_api_key') || DEFAULT_API_KEY,
-  soundEnabled: localStorage.getItem('energy_ledger_sound') !== 'false',
-  profile: JSON.parse(localStorage.getItem('energy_ledger_profile')) || {
-    name: 'Aarav', sex: 'male', age: 28, weight: 70, height: 175, activity: 1.55, goal: 'maintain', tdee: 2200
+  apiKey: localStorage.getItem('ironlog_key') || '',
+  soundOn: localStorage.getItem('ironlog_sound') !== 'false',
+  profile: JSON.parse(localStorage.getItem('ironlog_profile') || 'null') || {
+    name: 'Aarav', sex: 'male', age: 25, weight: 80, height: 178, activity: 1.55, goal: 'maintain', tdee: 2200, target: 2200
   },
-  scannedFood: null,    // Stores parsed food response
-  scannedMachine: null, // Stores parsed machine response
-  foodImage: null,      // { base64, mediaType }
-  machineImage: null,   // { base64, mediaType }
-  ledger: JSON.parse(localStorage.getItem('energy_ledger_items')) || { meals: [], workouts: [] }
+  ledger: JSON.parse(localStorage.getItem('ironlog_ledger') || 'null') || { meals: [], workouts: [] },
+  scannedFood: null,
+  scannedMachine: null,
+  foodImg: null,
+  machineImg: null,
 };
 
-// Web Audio API Synth Sound Effects
-const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-function playSound(type) {
-  if (!state.soundEnabled) return;
+function save() {
+  localStorage.setItem('ironlog_key', state.apiKey);
+  localStorage.setItem('ironlog_sound', state.soundOn);
+  localStorage.setItem('ironlog_profile', JSON.stringify(state.profile));
+  localStorage.setItem('ironlog_ledger', JSON.stringify(state.ledger));
+  renderLedger();
+  renderCoachData();
+}
+
+// XSS safe
+function esc(s) {
+  const d = document.createElement('div');
+  d.textContent = String(s || '');
+  return d.innerHTML;
+}
+
+// ========================== AUDIO ==========================
+let audioCtx;
+function getAudio() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtx;
+}
+
+function playBeep(type) {
+  if (!state.soundOn) return;
   try {
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
+    const ac = getAudio();
+    const osc = ac.createOscillator();
+    const gain = ac.createGain();
     osc.connect(gain);
-    gain.connect(audioCtx.destination);
-    
-    const now = audioCtx.currentTime;
+    gain.connect(ac.destination);
+    const now = ac.currentTime;
     if (type === 'click') {
       osc.type = 'sine';
-      osc.frequency.setValueAtTime(440, now);
-      osc.frequency.exponentialRampToValueAtTime(880, now + 0.05);
-      gain.gain.setValueAtTime(0.1, now);
-      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
-      osc.start(now);
-      osc.stop(now + 0.05);
+      osc.frequency.setValueAtTime(660, now);
+      gain.gain.setValueAtTime(0.06, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+      osc.start(now); osc.stop(now + 0.08);
     } else if (type === 'success') {
       osc.type = 'triangle';
-      osc.frequency.setValueAtTime(523.25, now);
-      osc.frequency.setValueAtTime(659.25, now + 0.08);
-      osc.frequency.setValueAtTime(783.99, now + 0.16);
-      gain.gain.setValueAtTime(0.15, now);
-      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
-      osc.start(now);
-      osc.stop(now + 0.3);
+      osc.frequency.setValueAtTime(523, now);
+      osc.frequency.setValueAtTime(659, now + 0.08);
+      osc.frequency.setValueAtTime(784, now + 0.16);
+      gain.gain.setValueAtTime(0.12, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+      osc.start(now); osc.stop(now + 0.35);
     } else if (type === 'scan') {
       osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(150, now);
+      osc.frequency.linearRampToValueAtTime(500, now + 0.25);
+      gain.gain.setValueAtTime(0.07, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+      osc.start(now); osc.stop(now + 0.25);
+    } else if (type === 'error') {
+      osc.type = 'square';
       osc.frequency.setValueAtTime(200, now);
-      osc.frequency.linearRampToValueAtTime(600, now + 0.2);
+      osc.frequency.setValueAtTime(180, now + 0.05);
       gain.gain.setValueAtTime(0.08, now);
-      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
-      osc.start(now);
-      osc.stop(now + 0.2);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+      osc.start(now); osc.stop(now + 0.15);
     }
   } catch(e) {}
 }
 
-// Save state helpers
-function saveState() {
-  localStorage.setItem('energy_ledger_api_key', state.apiKey);
-  localStorage.setItem('energy_ledger_sound', state.soundEnabled);
-  localStorage.setItem('energy_ledger_profile', JSON.stringify(state.profile));
-  localStorage.setItem('energy_ledger_items', JSON.stringify(state.ledger));
-  updateUI();
-}
-
-function escapeHtml(s) {
-  const d = document.createElement('div');
-  d.textContent = s || '';
-  return d.innerHTML;
-}
-
-// ==================== TABS SYSTEM ====================
+// ========================== TABS ==========================
 document.querySelectorAll('.tab-btn').forEach(btn => {
   btn.addEventListener('click', () => {
-    playSound('click');
+    playBeep('click');
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
     btn.classList.add('active');
@@ -1230,56 +1873,69 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
   });
 });
 
-// ==================== TOP BAR & KEY SETTINGS ====================
+// ========================== API KEY MODAL ==========================
 const keyModal = document.getElementById('key-modal');
-const apiKeyInput = document.getElementById('input-api-key');
-
-document.getElementById('btn-key-settings').addEventListener('click', () => {
-  playSound('click');
-  apiKeyInput.value = state.apiKey;
+document.getElementById('btn-api-key').addEventListener('click', () => {
+  playBeep('click');
+  document.getElementById('input-api-key').value = state.apiKey;
   keyModal.classList.add('active');
 });
-
-document.getElementById('btn-close-key').addEventListener('click', () => {
-  keyModal.classList.remove('active');
-});
-
+document.getElementById('btn-close-modal').addEventListener('click', () => keyModal.classList.remove('active'));
 document.getElementById('btn-save-key').addEventListener('click', () => {
-  playSound('success');
-  const val = apiKeyInput.value.trim();
-  if (val) state.apiKey = val;
-  saveState();
+  playBeep('success');
+  const v = document.getElementById('input-api-key').value.trim();
+  if (v) state.apiKey = v;
+  save();
+  updateStatusBar();
   keyModal.classList.remove('active');
 });
+keyModal.addEventListener('click', (e) => { if (e.target === keyModal) keyModal.classList.remove('active'); });
 
-const soundBtn = document.getElementById('btn-sound-toggle');
+// ========================== SOUND TOGGLE ==========================
+const soundBtn = document.getElementById('btn-sound');
 soundBtn.addEventListener('click', () => {
-  state.soundEnabled = !state.soundEnabled;
-  soundBtn.textContent = state.soundEnabled ? '🔊 Sound: ON' : '🔇 Sound: OFF';
-  saveState();
+  state.soundOn = !state.soundOn;
+  soundBtn.textContent = state.soundOn ? '🔊 SFX ON' : '🔇 SFX OFF';
+  save();
 });
 
-// ==================== INTAKE CALCULATOR ====================
+// ========================== STATUS BAR ==========================
+function updateStatusBar() {
+  const dot = document.getElementById('status-dot');
+  const txt = document.getElementById('status-text');
+  if (state.apiKey) {
+    dot.className = 'pulse-dot';
+    txt.textContent = 'AI READY';
+  } else {
+    dot.className = 'pulse-dot red';
+    txt.textContent = 'NO API KEY';
+  }
+}
+updateStatusBar();
+
+// ========================== INTAKE CALCULATOR ==========================
 document.querySelectorAll('#sex-toggle button').forEach(btn => {
   btn.addEventListener('click', () => {
-    playSound('click');
+    playBeep('click');
     document.querySelectorAll('#sex-toggle button').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     state.profile.sex = btn.dataset.val;
   });
 });
 
-function calculateTDEE() {
-  const name = document.getElementById('in-name').value.trim() || 'User';
-  const age = parseFloat(document.getElementById('in-age').value) || 28;
-  const weight = parseFloat(document.getElementById('in-weight').value) || 70;
-  const height = parseFloat(document.getElementById('in-height').value) || 175;
+// Set initial sex toggle
+document.querySelector(`#sex-toggle button[data-val="${state.profile.sex}"]`).classList.add('active');
+document.querySelector(`#sex-toggle button[data-val="${state.profile.sex === 'male' ? 'female' : 'male'}"]`).classList.remove('active');
+
+function computeTDEE() {
+  const name = document.getElementById('in-name').value.trim() || 'Athlete';
+  const age = parseFloat(document.getElementById('in-age').value) || 25;
+  const weight = parseFloat(document.getElementById('in-weight').value) || 80;
+  const height = parseFloat(document.getElementById('in-height').value) || 178;
   const activity = parseFloat(document.getElementById('in-activity').value);
   const goal = document.getElementById('in-goal').value;
+  const actLabel = document.getElementById('in-activity').selectedOptions[0].text.split('—')[0].trim();
 
-  const activityText = document.getElementById('in-activity').selectedOptions[0].text.split('—')[0].trim();
-
-  // Mifflin-St Jeor Equation
   const base = 10 * weight + 6.25 * height - 5 * age;
   const bmr = Math.round(state.profile.sex === 'male' ? base + 5 : base - 161);
   const tdee = Math.round(bmr * activity);
@@ -1290,476 +1946,435 @@ function calculateTDEE() {
   else if (goal === 'gain_mild') target += 250;
   else if (goal === 'gain_standard') target += 500;
 
-  // Macro Splits (40% Carb, 30% Protein, 30% Fat)
-  const proteinGrams = Math.round((target * 0.30) / 4);
-  const carbsGrams = Math.round((target * 0.40) / 4);
-  const fatGrams = Math.round((target * 0.30) / 9);
+  const prot = Math.round((target * 0.30) / 4);
+  const carbs = Math.round((target * 0.40) / 4);
+  const fat = Math.round((target * 0.30) / 9);
+  const water = (weight * 0.035).toFixed(1);
 
-  // Water Intake recommendation (approx 35ml per kg)
-  const waterLiters = (weight * 0.035).toFixed(1);
+  const goalLabels = {
+    maintain: 'MAINTENANCE TARGET',
+    lose_mild: 'MILD CUT TARGET',
+    lose_standard: 'HARD CUT TARGET',
+    gain_mild: 'LEAN BULK TARGET',
+    gain_standard: 'MASS GAIN TARGET',
+  };
 
   state.profile = { name, sex: state.profile.sex, age, weight, height, activity, goal, bmr, tdee, target };
-  saveState();
+  save();
 
-  const panel = document.getElementById('facts-panel');
-  panel.innerHTML = `
-    <div class="fp-eyebrow">Target Energy Facts</div>
-    <h2>${escapeHtml(name)}</h2>
-    <div class="fp-serving">${weight}kg · ${height}cm · ${age}y · ${state.profile.sex === 'male' ? 'M' : 'F'} · ${activityText}</div>
-    <div class="fp-big">
-      <div class="num">${target.toLocaleString()}</div>
-      <div class="lbl">target kcal / day for your goal</div>
-    </div>
-    
-    <div class="macro-bar-container">
-      <div class="macro-labels">
-        <span>Protein: ${proteinGrams}g</span>
-        <span>Carbs: ${carbsGrams}g</span>
-        <span>Fat: ${fatGrams}g</span>
-      </div>
-      <div class="macro-progress">
-        <div class="macro-segment macro-p" style="width: 30%"></div>
-        <div class="macro-segment macro-c" style="width: 40%"></div>
-        <div class="macro-segment macro-f" style="width: 30%"></div>
-      </div>
-    </div>
+  // Render results
+  document.getElementById('result-empty').style.display = 'none';
+  document.getElementById('result-content').style.display = 'block';
+  document.getElementById('rc-name').textContent = name.toUpperCase();
+  document.getElementById('rc-serving').textContent = `${weight}kg · ${height}cm · ${age}y · ${actLabel}`;
+  document.getElementById('rc-cal').textContent = target.toLocaleString();
+  document.getElementById('rc-goal-label').textContent = goalLabels[goal] || 'CALORIE TARGET';
+  document.getElementById('rc-bmr').textContent = bmr.toLocaleString() + ' kcal';
+  document.getElementById('rc-tdee').textContent = tdee.toLocaleString() + ' kcal';
+  document.getElementById('rc-water').textContent = `💧 ${water}L`;
 
-    <div class="fp-row"><span>Basal Metabolic Rate (BMR)</span><span class="v">${bmr.toLocaleString()} kcal</span></div>
-    <div class="fp-row"><span>Maintenance Expenditure (TDEE)</span><span class="v">${tdee.toLocaleString()} kcal</span></div>
-    <div class="fp-row"><span>Recommended Daily Water</span><span class="v">💧 ${waterLiters} Liters</span></div>
-  `;
+  document.getElementById('lbl-protein').textContent = prot + 'g';
+  document.getElementById('lbl-carbs').textContent = carbs + 'g';
+  document.getElementById('lbl-fat').textContent = fat + 'g';
+
+  // Animate bars (staggered)
+  setTimeout(() => { document.getElementById('bar-protein').style.width = '30%'; }, 50);
+  setTimeout(() => { document.getElementById('bar-carbs').style.width = '40%'; }, 150);
+  setTimeout(() => { document.getElementById('bar-fat').style.width = '30%'; }, 250);
+
+  // Animate ring (circumference 327)
+  const pct = Math.min(1, target / 4000);
+  const dash = 2 * Math.PI * 52;
+  const offset = dash * (1 - pct);
+  setTimeout(() => { document.getElementById('ring-fill').style.strokeDashoffset = offset; }, 100);
+
+  // Sync weight to machine tab
+  document.getElementById('m-weight').value = weight;
 }
 
 document.getElementById('btn-calc').addEventListener('click', () => {
-  playSound('success');
-  calculateTDEE();
+  playBeep('success');
+  computeTDEE();
 });
 
-// Sync weight with machine tab automatically
-document.getElementById('in-weight').addEventListener('input', e => {
-  const w = parseFloat(e.target.value);
-  if (w) document.getElementById('m-weight').value = w;
-});
+// Auto-calculate on load
+computeTDEE();
 
-// Initial Calc
-calculateTDEE();
-
-// ==================== VIEWFINDER & GEMINI VISION API ====================
-
-// Sample Base64 Data Presets (Generates lightweight canvas placeholder images for demo)
-function createPresetImage(label, bgColor) {
-  const canvas = document.createElement('canvas');
-  canvas.width = 400; canvas.height = 300;
-  const ctx = canvas.getContext('2d');
-  ctx.fillStyle = bgColor;
-  ctx.fillRect(0, 0, 400, 300);
-  ctx.fillStyle = '#FFFFFF';
-  ctx.font = 'bold 24px Share Tech Mono, monospace';
-  ctx.textAlign = 'center';
-  ctx.fillText(label, 200, 150);
-  return canvas.toDataURL('image/jpeg').split(',')[1];
+// ========================== PRESET IMAGES ==========================
+function makePreset(label, bg) {
+  const c = document.createElement('canvas');
+  c.width = 400; c.height = 300;
+  const x = c.getContext('2d');
+  x.fillStyle = bg;
+  x.fillRect(0, 0, 400, 300);
+  // noise
+  for (let i = 0; i < 2000; i++) {
+    x.fillStyle = `rgba(255,255,255,${Math.random() * 0.04})`;
+    x.fillRect(Math.random() * 400, Math.random() * 300, 1, 1);
+  }
+  x.fillStyle = 'rgba(0,0,0,0.3)';
+  x.fillRect(0, 0, 400, 300);
+  x.fillStyle = '#FFFFFF';
+  x.font = 'bold 22px Bebas Neue, Arial';
+  x.textAlign = 'center';
+  x.textBaseline = 'middle';
+  x.fillText(label, 200, 150);
+  return c.toDataURL('image/jpeg').split(',')[1];
 }
 
-const PRESET_IMAGES = {
-  grilled_chicken: createPresetImage('Grilled Chicken & Rice', '#D35400'),
-  avocado_toast: createPresetImage('Avocado Toast & Egg', '#27AE60'),
-  salmon_salad: createPresetImage('Salmon & Quinoa Salad', '#C0392B'),
-  burger: createPresetImage('Double Cheeseburger', '#7E5109'),
-  treadmill: createPresetImage('Gym Treadmill Console', '#2C3E50'),
-  exercise_bike: createPresetImage('Stationary Bike Ergometer', '#16A085'),
-  rowing: createPresetImage('Concept2 Rowing Machine', '#8E44AD'),
-  elliptical: createPresetImage('Cross Trainer Elliptical', '#2980B9')
+const PRESETS = {
+  grilled_chicken: makePreset('Grilled Chicken & Rice', '#7B3F00'),
+  avocado_toast: makePreset('Avocado Toast & Egg', '#2D5A27'),
+  salmon_salad: makePreset('Salmon & Quinoa Bowl', '#8B0000'),
+  burger: makePreset('Double Cheeseburger', '#5C3317'),
+  treadmill: makePreset('Treadmill Machine', '#111827'),
+  exercise_bike: makePreset('Stationary Bike', '#0D1B2A'),
+  rowing: makePreset('Rowing Machine', '#1A0D2E'),
+  elliptical: makePreset('Elliptical Cross Trainer', '#0A1628'),
 };
 
-function wireViewfinder(vfId, inputId, placeholderId, webcamId, btnCamId, btnSnapId, onReady) {
+// ========================== VIEWFINDER WIRING ==========================
+function wireVF(vfId, inputId, phId, videoId, camBtnId, snapBtnId, onReady) {
   const vf = document.getElementById(vfId);
   const input = document.getElementById(inputId);
-  const video = document.getElementById(webcamId);
-  const btnCam = document.getElementById(btnCamId);
-  const btnSnap = document.getElementById(btnSnapId);
+  const video = document.getElementById(videoId);
+  const camBtn = document.getElementById(camBtnId);
+  const snapBtn = document.getElementById(snapBtnId);
   let stream = null;
 
-  // File Upload
-  vf.addEventListener('click', (e) => {
-    if (e.target.tagName !== 'VIDEO') input.click();
-  });
+  function showImg(base64, mime) {
+    document.getElementById(phId).style.display = 'none';
+    if (video) video.style.display = 'none';
+    let img = vf.querySelector('img');
+    if (!img) { img = document.createElement('img'); vf.appendChild(img); }
+    img.src = 'data:' + mime + ';base64,' + base64;
+    img.style.display = 'block';
+    onReady({ base64, mediaType: mime });
+  }
 
+  async function handleFile(file) {
+    playBeep('scan');
+    const base64 = await new Promise((res, rej) => {
+      const r = new FileReader();
+      r.onload = () => res(r.result.split(',')[1]);
+      r.onerror = () => rej(new Error('Read error'));
+      r.readAsDataURL(file);
+    });
+    showImg(base64, file.type || 'image/jpeg');
+  }
+
+  vf.addEventListener('click', (e) => { if (e.target.tagName !== 'VIDEO' && e.target.tagName !== 'IMG') input.click(); });
   vf.addEventListener('dragover', (e) => { e.preventDefault(); vf.classList.add('dragover'); });
   vf.addEventListener('dragleave', () => vf.classList.remove('dragover'));
   vf.addEventListener('drop', (e) => {
-    e.preventDefault();
-    vf.classList.remove('dragover');
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      handleFile(e.dataTransfer.files[0]);
-    }
+    e.preventDefault(); vf.classList.remove('dragover');
+    if (e.dataTransfer.files?.[0]) handleFile(e.dataTransfer.files[0]);
   });
+  input.addEventListener('change', () => { if (input.files?.[0]) handleFile(input.files[0]); });
 
-  input.addEventListener('change', () => {
-    if (input.files && input.files[0]) handleFile(input.files[0]);
-  });
-
-  async function handleFile(file) {
-    playSound('scan');
-    const url = URL.createObjectURL(file);
-    const ph = document.getElementById(placeholderId);
-    if (ph) ph.style.display = 'none';
-    if (video) video.style.display = 'none';
-
-    let existingImg = vf.querySelector('img');
-    if (!existingImg) {
-      existingImg = document.createElement('img');
-      vf.appendChild(existingImg);
-    }
-    existingImg.src = url;
-    existingImg.style.display = 'block';
-
-    const base64 = await readFileAsBase64(file);
-    onReady({ base64, mediaType: file.type || 'image/jpeg' });
-  }
-
-  // Live Camera
-  if (btnCam) {
-    btnCam.addEventListener('click', async () => {
-      playSound('click');
+  if (camBtn) {
+    camBtn.addEventListener('click', async () => {
+      playBeep('click');
       try {
         stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
         video.srcObject = stream;
         video.style.display = 'block';
-        const ph = document.getElementById(placeholderId);
-        if (ph) ph.style.display = 'none';
-        const existingImg = vf.querySelector('img');
-        if (existingImg) existingImg.style.display = 'none';
-
-        btnCam.style.display = 'none';
-        btnSnap.style.display = 'block';
-      } catch(err) {
-        alert('Camera access denied or unavailable: ' + err.message);
-      }
+        document.getElementById(phId).style.display = 'none';
+        const img = vf.querySelector('img');
+        if (img) img.style.display = 'none';
+        camBtn.style.display = 'none';
+        snapBtn.style.display = 'flex';
+      } catch(err) { alert('Camera unavailable: ' + err.message); }
     });
   }
 
-  if (btnSnap) {
-    btnSnap.addEventListener('click', () => {
-      playSound('scan');
-      const canvas = document.createElement('canvas');
-      canvas.width = video.videoWidth || 640;
-      canvas.height = video.videoHeight || 480;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-      if (stream) {
-        stream.getTracks().forEach(track => track.stop());
-      }
+  if (snapBtn) {
+    snapBtn.addEventListener('click', () => {
+      playBeep('scan');
+      const c = document.createElement('canvas');
+      c.width = video.videoWidth || 640; c.height = video.videoHeight || 480;
+      c.getContext('2d').drawImage(video, 0, 0, c.width, c.height);
+      if (stream) stream.getTracks().forEach(t => t.stop());
       video.style.display = 'none';
-
-      const dataUrl = canvas.toDataURL('image/jpeg');
-      let existingImg = vf.querySelector('img');
-      if (!existingImg) {
-        existingImg = document.createElement('img');
-        vf.appendChild(existingImg);
-      }
-      existingImg.src = dataUrl;
-      existingImg.style.display = 'block';
-
-      btnSnap.style.display = 'none';
-      btnCam.style.display = 'block';
-
-      const base64 = dataUrl.split(',')[1];
-      onReady({ base64, mediaType: 'image/jpeg' });
+      snapBtn.style.display = 'none';
+      camBtn.style.display = 'flex';
+      const base64 = c.toDataURL('image/jpeg').split(',')[1];
+      showImg(base64, 'image/jpeg');
     });
   }
 }
 
-function readFileAsBase64(file) {
-  return new Promise((resolve, reject) => {
-    const r = new FileReader();
-    r.onload = () => resolve(r.result.split(',')[1]);
-    r.onerror = () => reject(new Error('Could not read file'));
-    r.readAsDataURL(file);
-  });
-}
-
-// Wire Viewfinders
-wireViewfinder('vf-food', 'input-food', 'vf-food-placeholder', 'webcam-food', 'btn-webcam-food', 'btn-snap-food', (img) => {
-  state.foodImage = img;
+wireVF('vf-food', 'input-food', 'vf-food-ph', 'webcam-food', 'btn-cam-food', 'btn-snap-food', (img) => {
+  state.foodImg = img;
   document.getElementById('btn-analyze-food').disabled = false;
 });
 
-wireViewfinder('vf-machine', 'input-machine', 'vf-machine-placeholder', 'webcam-machine', 'btn-webcam-machine', 'btn-snap-machine', (img) => {
-  state.machineImage = img;
+wireVF('vf-machine', 'input-machine', 'vf-machine-ph', 'webcam-machine', 'btn-cam-machine', 'btn-snap-machine', (img) => {
+  state.machineImg = img;
   document.getElementById('btn-analyze-machine').disabled = false;
 });
 
-// Preset Chip Clicks
+// Preset chips - food
 document.querySelectorAll('[data-preset-food]').forEach(chip => {
   chip.addEventListener('click', () => {
-    playSound('scan');
+    playBeep('scan');
+    document.querySelectorAll('[data-preset-food]').forEach(c => c.classList.remove('selected'));
+    chip.classList.add('selected');
     const key = chip.dataset.presetFood;
-    const base64 = PRESET_IMAGES[key];
-    state.foodImage = { base64, mediaType: 'image/jpeg' };
-
+    const base64 = PRESETS[key];
+    state.foodImg = { base64, mediaType: 'image/jpeg' };
     const vf = document.getElementById('vf-food');
-    const ph = document.getElementById('vf-food-placeholder');
-    if (ph) ph.style.display = 'none';
-    let existingImg = vf.querySelector('img');
-    if (!existingImg) {
-      existingImg = document.createElement('img');
-      vf.appendChild(existingImg);
-    }
-    existingImg.src = 'data:image/jpeg;base64,' + base64;
-    existingImg.style.display = 'block';
-
+    document.getElementById('vf-food-ph').style.display = 'none';
+    let img = vf.querySelector('img');
+    if (!img) { img = document.createElement('img'); vf.appendChild(img); }
+    img.src = 'data:image/jpeg;base64,' + base64;
+    img.style.display = 'block';
     document.getElementById('btn-analyze-food').disabled = false;
   });
 });
 
+// Preset chips - machine
 document.querySelectorAll('[data-preset-machine]').forEach(chip => {
   chip.addEventListener('click', () => {
-    playSound('scan');
+    playBeep('scan');
+    document.querySelectorAll('[data-preset-machine]').forEach(c => c.classList.remove('selected'));
+    chip.classList.add('selected');
     const key = chip.dataset.presetMachine;
-    const base64 = PRESET_IMAGES[key];
-    state.machineImage = { base64, mediaType: 'image/jpeg' };
-
+    const base64 = PRESETS[key];
+    state.machineImg = { base64, mediaType: 'image/jpeg' };
     const vf = document.getElementById('vf-machine');
-    const ph = document.getElementById('vf-machine-placeholder');
-    if (ph) ph.style.display = 'none';
-    let existingImg = vf.querySelector('img');
-    if (!existingImg) {
-      existingImg = document.createElement('img');
-      vf.appendChild(existingImg);
-    }
-    existingImg.src = 'data:image/jpeg;base64,' + base64;
-    existingImg.style.display = 'block';
-
+    document.getElementById('vf-machine-ph').style.display = 'none';
+    let img = vf.querySelector('img');
+    if (!img) { img = document.createElement('img'); vf.appendChild(img); }
+    img.src = 'data:image/jpeg;base64,' + base64;
+    img.style.display = 'block';
     document.getElementById('btn-analyze-machine').disabled = false;
   });
 });
 
-// ==================== GEMINI API CALL HANDLER ====================
-async function callGeminiVision(base64, mediaType, promptText) {
-  const key = state.apiKey || DEFAULT_API_KEY;
+// ========================== GEMINI API ==========================
+async function callGemini(base64, mediaType, prompt) {
+  const key = state.apiKey;
+  if (!key) throw new Error('No API key set. Click ⚙ API KEY in the top bar to add your key.');
   const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`;
-
   const payload = {
-    contents: [{
-      parts: [
-        { inline_data: { mime_type: mediaType, data: base64 } },
-        { text: promptText }
-      ]
-    }],
-    generationConfig: {
-      response_mime_type: "application/json"
-    }
+    contents: [{ parts: [
+      { inline_data: { mime_type: mediaType, data: base64 } },
+      { text: prompt }
+    ]}],
+    generationConfig: { response_mime_type: 'application/json' }
   };
-
-  const response = await fetch(url, {
+  const res = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload)
   });
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`Gemini API Error (HTTP ${response.status}): ${errorText || response.statusText}`);
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(`Gemini API Error (${res.status}): ${err || res.statusText}`);
   }
-
-  const data = await response.json();
-  const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text;
-  if (!rawText) throw new Error('No valid content generated by Gemini Vision model.');
-
-  let clean = rawText.trim();
-  clean = clean.replace(/^```json/i, '').replace(/^```/, '').replace(/```$/, '').trim();
+  const data = await res.json();
+  const raw = data.candidates?.[0]?.content?.parts?.[0]?.text;
+  if (!raw) throw new Error('No content returned from Gemini.');
+  let clean = raw.trim().replace(/^```json\s*/i, '').replace(/^```/, '').replace(/```$/, '').trim();
   return JSON.parse(clean);
 }
 
-// ==================== FOOD ANALYSIS ====================
+// ========================== FOOD ANALYSIS ==========================
 document.getElementById('btn-analyze-food').addEventListener('click', async () => {
-  if (!state.foodImage) return;
-  playSound('click');
+  if (!state.foodImg) return;
+  playBeep('click');
+
   const btn = document.getElementById('btn-analyze-food');
   const body = document.getElementById('led-food-body');
-  const confidenceBadge = document.getElementById('food-confidence-badge');
-  const portionControls = document.getElementById('food-portion-controls');
+  const badge = document.getElementById('food-confidence');
+  const portionWrap = document.getElementById('food-portion-wrap');
 
   btn.disabled = true;
-  btn.textContent = '⚡ Gemini AI Processing...';
-  body.innerHTML = '<div class="led-empty">Analyzing food geometry & nutrient breakdown with Gemini 2.5 Flash...</div>';
-  confidenceBadge.textContent = 'SCANNING';
+  btn.textContent = '⚡ GEMINI ANALYZING...';
+  badge.textContent = 'SCANNING';
+  document.getElementById('vf-food').classList.add('scanning');
 
-  const prompt = `You are an expert nutritional estimation assistant. Analyze this food image.
-Return JSON ONLY with exact keys:
+  body.innerHTML = `<div class="led-empty"><div style="font-size:28px;">⚡</div><div>GEMINI AI PROCESSING FOOD IMAGE<br>ESTIMATING MACROS &amp; CALORIES...</div></div>`;
+  portionWrap.style.display = 'none';
+
+  const prompt = `You are an expert nutritional estimation AI. Analyze this food image carefully.
+Return ONLY valid JSON with exactly these keys:
 {
-  "recognized": true or false,
-  "food_name": "Name of food item",
-  "serving_description": "Estimated serving size (e.g. 1 plate, 250g)",
-  "calories_estimate": integer_number,
-  "protein_g": integer_number,
-  "carbs_g": integer_number,
-  "fat_g": integer_number,
-  "health_score": integer_1_to_10,
+  "recognized": boolean,
+  "food_name": "string",
+  "serving_description": "string",
+  "calories_estimate": integer,
+  "protein_g": integer,
+  "carbs_g": integer,
+  "fat_g": integer,
+  "health_score": integer between 1 and 10,
   "confidence": "high" or "medium" or "low",
-  "note": "Short caveat or detail about preparation"
+  "note": "string"
 }`;
 
   try {
-    const result = await callGeminiVision(state.foodImage.base64, state.foodImage.mediaType, prompt);
+    const result = await callGemini(state.foodImg.base64, state.foodImg.mediaType, prompt);
     state.scannedFood = result;
+    document.getElementById('vf-food').classList.remove('scanning');
 
     if (!result.recognized) {
-      body.innerHTML = `<div class="led-error">Could not identify food item clearly.</div><div class="led-note">${escapeHtml(result.note || 'Try a closer, better lit photo.')}</div>`;
-      confidenceBadge.textContent = 'FAIL';
-      portionControls.style.display = 'none';
+      body.innerHTML = `<div class="led-error">Could not identify the food item. Try a clearer photo with better lighting.</div>`;
+      badge.textContent = 'FAIL';
+      portionWrap.style.display = 'none';
+      playBeep('error');
     } else {
-      playSound('success');
-      confidenceBadge.textContent = result.confidence.toUpperCase();
-      renderFoodResult();
-      portionControls.style.display = 'block';
+      badge.textContent = result.confidence.toUpperCase();
+      renderFoodOutput();
+      portionWrap.style.display = 'block';
+      playBeep('success');
     }
   } catch(err) {
-    body.innerHTML = `<div class="led-error">${escapeHtml(err.message)}</div>`;
-    confidenceBadge.textContent = 'ERROR';
-    portionControls.style.display = 'none';
+    document.getElementById('vf-food').classList.remove('scanning');
+    body.innerHTML = `<div class="led-error">${esc(err.message)}</div>`;
+    badge.textContent = 'ERROR';
+    portionWrap.style.display = 'none';
+    playBeep('error');
   } finally {
     btn.disabled = false;
-    btn.textContent = '⚡ Analyze Meal with Gemini AI';
+    btn.textContent = '🔍 ANALYZE WITH GEMINI AI';
   }
 });
 
-function renderFoodResult() {
+function renderFoodOutput() {
+  const f = state.scannedFood;
+  if (!f) return;
   const mult = parseFloat(document.getElementById('food-portion-slider').value) || 1.0;
-  const food = state.scannedFood;
-  if (!food) return;
+  const cal = Math.round(f.calories_estimate * mult);
+  const p = Math.round(f.protein_g * mult);
+  const c = Math.round(f.carbs_g * mult);
+  const fat = Math.round(f.fat_g * mult);
+  const maxMacro = Math.max(p, c, fat, 1);
 
-  const cal = Math.round(food.calories_estimate * mult);
-  const p = Math.round(food.protein_g * mult);
-  const c = Math.round(food.carbs_g * mult);
-  const f = Math.round(food.fat_g * mult);
-
-  const body = document.getElementById('led-food-body');
-  body.innerHTML = `
-    <div class="led-name">${escapeHtml(food.food_name)} (${escapeHtml(food.serving_description)})</div>
-    <div class="led-digits-wrap">
-      <span class="led-digits amber">${cal}</span>
-      <span class="led-unit">kcal</span>
+  document.getElementById('led-food-body').innerHTML = `
+    <div class="led-main-name">${esc(f.food_name)}</div>
+    <div style="font-family:'Share Tech Mono',monospace; font-size:11px; color:var(--muted); margin-bottom:14px; letter-spacing:0.05em;">${esc(f.serving_description)}</div>
+    <div class="big-number">
+      <span class="big-num orange">${cal}</span>
+      <span class="big-unit">KCAL</span>
     </div>
-    
-    <div class="led-grid">
+    <div class="led-metrics">
       <div class="led-metric">
         <div class="led-metric-lbl">Protein</div>
-        <div class="led-metric-val" style="color:var(--red);">${p}g</div>
+        <div class="led-metric-val" style="color:var(--orange);">${p}g</div>
       </div>
       <div class="led-metric">
         <div class="led-metric-lbl">Carbs</div>
-        <div class="led-metric-val" style="color:var(--amber);">${c}g</div>
+        <div class="led-metric-val" style="color:var(--yellow);">${c}g</div>
       </div>
       <div class="led-metric">
         <div class="led-metric-lbl">Fat</div>
-        <div class="led-metric-val" style="color:var(--blue);">${f}g</div>
+        <div class="led-metric-val" style="color:var(--neon2);">${fat}g</div>
       </div>
     </div>
-
-    <div style="font-family:'Share Tech Mono', monospace; font-size:12px; color:rgba(255,255,255,0.7); margin-top:6px;">
-      Health Score Index: <span style="color:var(--green); font-weight:700;">${food.health_score}/10</span>
-    </div>
-    <div class="led-note">${escapeHtml(food.note || '')}</div>
+    <div style="font-family:'Share Tech Mono',monospace; font-size:11px; color:var(--muted); letter-spacing:0.06em;">HEALTH SCORE: <span style="color:var(--neon); text-shadow:var(--glow-n);">${f.health_score}/10</span></div>
+    <div class="led-note">${esc(f.note || '')}</div>
   `;
 }
 
 document.getElementById('food-portion-slider').addEventListener('input', (e) => {
-  const val = parseFloat(e.target.value).toFixed(2);
-  document.getElementById('food-portion-val').textContent = val + 'x';
-  renderFoodResult();
+  document.getElementById('portion-val-lbl').textContent = parseFloat(e.target.value).toFixed(2) + 'x';
+  renderFoodOutput();
 });
 
 document.getElementById('btn-log-food').addEventListener('click', () => {
   if (!state.scannedFood) return;
-  playSound('success');
+  playBeep('success');
   const mult = parseFloat(document.getElementById('food-portion-slider').value) || 1.0;
-  const food = state.scannedFood;
-
+  const f = state.scannedFood;
   state.ledger.meals.push({
     id: Date.now(),
-    name: food.food_name,
-    calories: Math.round(food.calories_estimate * mult),
-    protein: Math.round(food.protein_g * mult),
-    carbs: Math.round(food.carbs_g * mult),
-    fat: Math.round(food.fat_g * mult),
-    time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    name: f.food_name,
+    calories: Math.round(f.calories_estimate * mult),
+    protein: Math.round(f.protein_g * mult),
+    carbs: Math.round(f.carbs_g * mult),
+    fat: Math.round(f.fat_g * mult),
+    time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
   });
-
-  saveState();
-  alert(`Logged ${food.food_name} (${Math.round(food.calories_estimate * mult)} kcal) to Daily Ledger!`);
+  save();
+  // Flash confirmation
+  const btn = document.getElementById('btn-log-food');
+  const orig = btn.textContent;
+  btn.textContent = '✅ LOGGED!';
+  setTimeout(() => { btn.textContent = orig; }, 1500);
 });
 
-// ==================== MACHINE ANALYSIS ====================
+// ========================== MACHINE ANALYSIS ==========================
 document.getElementById('btn-analyze-machine').addEventListener('click', async () => {
-  if (!state.machineImage) return;
-  playSound('click');
+  if (!state.machineImg) return;
+  playBeep('click');
+
   const btn = document.getElementById('btn-analyze-machine');
   const body = document.getElementById('led-machine-body');
-  const metBadge = document.getElementById('machine-met-badge');
-  const logControls = document.getElementById('machine-log-controls');
+  const badge = document.getElementById('machine-met-badge');
+  const logWrap = document.getElementById('machine-log-wrap');
 
   btn.disabled = true;
-  btn.textContent = '⚡ Gemini AI Processing...';
-  body.innerHTML = '<div class="led-empty">Identifying exercise equipment and MET energy rate with Gemini 2.5...</div>';
-  metBadge.textContent = 'SCANNING';
+  btn.textContent = '⚡ GEMINI ANALYZING...';
+  badge.textContent = 'SCANNING';
+  document.getElementById('vf-machine').classList.add('scanning');
 
-  const prompt = `You are a fitness equipment identification expert. Analyze this gym machine or exercise equipment.
-Return JSON ONLY with exact keys:
+  body.innerHTML = `<div class="led-empty"><div style="font-size:28px;">⚡</div><div>IDENTIFYING EQUIPMENT<br>CALCULATING MET &amp; BURN RATE...</div></div>`;
+  logWrap.style.display = 'none';
+
+  const prompt = `You are a fitness equipment identification expert and exercise scientist.
+Analyze this gym machine or exercise equipment image carefully.
+Return ONLY valid JSON with exactly these keys:
 {
-  "recognized": true or false,
-  "machine_name": "Exact machine or exercise name",
-  "met_value": number_metabolic_equivalent_of_task,
-  "muscle_groups": "Targeted muscles (e.g. Quads, Glutes, Chest)",
+  "recognized": boolean,
+  "machine_name": "string",
+  "met_value": number,
+  "muscle_groups": "string",
   "category": "Cardio" or "Strength",
-  "note": "Short caveat or usage note"
+  "note": "string"
 }`;
 
   try {
-    const result = await callGeminiVision(state.machineImage.base64, state.machineImage.mediaType, prompt);
+    const result = await callGemini(state.machineImg.base64, state.machineImg.mediaType, prompt);
     state.scannedMachine = result;
+    document.getElementById('vf-machine').classList.remove('scanning');
 
     if (!result.recognized) {
-      body.innerHTML = `<div class="led-error">Could not identify fitness equipment.</div><div class="led-note">${escapeHtml(result.note || 'Try a full view of the machine.')}</div>`;
-      metBadge.textContent = 'FAIL';
-      logControls.style.display = 'none';
+      body.innerHTML = `<div class="led-error">Could not identify the equipment. Try a clearer, full-view photo.</div>`;
+      badge.textContent = 'FAIL';
+      playBeep('error');
     } else {
-      playSound('success');
-      metBadge.textContent = `MET ${result.met_value}`;
-      renderMachineResult();
-      logControls.style.display = 'block';
+      badge.textContent = `MET ${result.met_value}`;
+      renderMachineOutput();
+      logWrap.style.display = 'block';
+      playBeep('success');
     }
   } catch(err) {
-    body.innerHTML = `<div class="led-error">${escapeHtml(err.message)}</div>`;
-    metBadge.textContent = 'ERROR';
-    logControls.style.display = 'none';
+    document.getElementById('vf-machine').classList.remove('scanning');
+    body.innerHTML = `<div class="led-error">${esc(err.message)}</div>`;
+    badge.textContent = 'ERROR';
+    playBeep('error');
   } finally {
     btn.disabled = false;
-    btn.textContent = '⚡ Analyze Equipment with Gemini AI';
+    btn.textContent = '🔍 ANALYZE WITH GEMINI AI';
   }
 });
 
-function renderMachineResult() {
+function renderMachineOutput() {
   const m = state.scannedMachine;
   if (!m) return;
-
-  const weight = parseFloat(document.getElementById('m-weight').value) || state.profile.weight || 70;
+  const weight = parseFloat(document.getElementById('m-weight').value) || 80;
   const duration = parseFloat(document.getElementById('m-duration').value) || 30;
   const intensity = parseFloat(document.getElementById('m-intensity').value) || 1.0;
+  const burned = Math.round(m.met_value * weight * (duration / 60) * intensity);
 
-  // Calories = MET * Weight(kg) * (Duration(mins)/60) * Intensity
-  const caloriesBurned = Math.round(m.met_value * weight * (duration / 60) * intensity);
-
-  const body = document.getElementById('led-machine-body');
-  body.innerHTML = `
-    <div class="led-name">${escapeHtml(m.machine_name)}</div>
-    <div class="led-digits-wrap">
-      <span class="led-digits green">${caloriesBurned}</span>
-      <span class="led-unit">kcal burned over ${duration} min</span>
+  document.getElementById('led-machine-body').innerHTML = `
+    <div class="led-main-name">${esc(m.machine_name)}</div>
+    <div class="big-number">
+      <span class="big-num neon">${burned}</span>
+      <span class="big-unit">KCAL BURNED</span>
     </div>
-
-    <div class="led-grid">
+    <div class="led-metrics">
       <div class="led-metric">
         <div class="led-metric-lbl">MET Rate</div>
         <div class="led-metric-val">${m.met_value}</div>
@@ -1769,232 +2384,200 @@ function renderMachineResult() {
         <div class="led-metric-val">${duration}m</div>
       </div>
       <div class="led-metric">
-        <div class="led-metric-lbl">Category</div>
-        <div class="led-metric-val">${escapeHtml(m.category || 'Cardio')}</div>
+        <div class="led-metric-lbl">Type</div>
+        <div class="led-metric-val" style="font-size:1rem;">${esc(m.category)}</div>
       </div>
     </div>
-
-    <div style="font-family:'Share Tech Mono', monospace; font-size:12px; color:rgba(255,255,255,0.7); margin-top:6px;">
-      Primary Muscles: <span style="color:var(--amber); font-weight:700;">${escapeHtml(m.muscle_groups || 'Full Body')}</span>
-    </div>
-    <div class="led-note">${escapeHtml(m.note || '')}</div>
+    <div style="font-family:'Share Tech Mono',monospace; font-size:11px; color:var(--muted); letter-spacing:0.06em;">TARGET MUSCLES: <span style="color:var(--yellow);">${esc(m.muscle_groups)}</span></div>
+    <div class="led-note">${esc(m.note || '')}</div>
   `;
 }
 
-document.getElementById('m-weight').addEventListener('input', renderMachineResult);
-document.getElementById('m-duration').addEventListener('input', renderMachineResult);
-document.getElementById('m-intensity').addEventListener('change', renderMachineResult);
+['m-weight', 'm-duration'].forEach(id => {
+  document.getElementById(id).addEventListener('input', renderMachineOutput);
+});
+document.getElementById('m-intensity').addEventListener('change', renderMachineOutput);
 
 document.getElementById('btn-log-machine').addEventListener('click', () => {
   if (!state.scannedMachine) return;
-  playSound('success');
+  playBeep('success');
   const m = state.scannedMachine;
-  const weight = parseFloat(document.getElementById('m-weight').value) || 70;
+  const weight = parseFloat(document.getElementById('m-weight').value) || 80;
   const duration = parseFloat(document.getElementById('m-duration').value) || 30;
   const intensity = parseFloat(document.getElementById('m-intensity').value) || 1.0;
-  const caloriesBurned = Math.round(m.met_value * weight * (duration / 60) * intensity);
+  const burned = Math.round(m.met_value * weight * (duration / 60) * intensity);
 
   state.ledger.workouts.push({
     id: Date.now(),
     name: m.machine_name,
     duration,
-    calories: caloriesBurned,
-    time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    calories: burned,
+    time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
   });
-
-  saveState();
-  alert(`Logged ${m.machine_name} (${caloriesBurned} kcal burned) to Daily Ledger!`);
+  save();
+  const btn = document.getElementById('btn-log-machine');
+  const orig = btn.textContent;
+  btn.textContent = '✅ WORKOUT LOGGED!';
+  setTimeout(() => { btn.textContent = orig; }, 1500);
 });
 
-// ==================== DAILY LEDGER TRACKER ====================
-function updateUI() {
-  // Update Header Status
-  const dot = document.getElementById('api-status-dot');
-  const text = document.getElementById('api-status-text');
-  if (state.apiKey) {
-    dot.className = 'dot';
-    text.textContent = 'Gemini 2.5 Vision Ready';
-  } else {
-    dot.className = 'dot red';
-    text.textContent = 'API Key Missing';
-  }
+// ========================== LEDGER ==========================
+function renderLedger() {
+  const totalIn = state.ledger.meals.reduce((s, m) => s + m.calories, 0);
+  const totalOut = state.ledger.workouts.reduce((s, w) => s + w.calories, 0);
+  const net = totalIn - totalOut;
+  const target = state.profile.target || 2200;
+  const count = state.ledger.meals.length + state.ledger.workouts.length;
 
-  // Update Target Stat
-  const targetCal = state.profile.target || 2200;
-  document.getElementById('stat-target-cal').textContent = targetCal.toLocaleString();
+  document.getElementById('tab-count').textContent = count;
+  document.getElementById('stat-target').textContent = target.toLocaleString();
+  document.getElementById('stat-in').textContent = totalIn.toLocaleString();
+  document.getElementById('stat-in-sub').textContent = `${state.ledger.meals.length} meal(s)`;
+  document.getElementById('stat-out').textContent = totalOut.toLocaleString();
+  document.getElementById('stat-out-sub').textContent = `${state.ledger.workouts.length} workout(s)`;
+  document.getElementById('stat-net').textContent = Math.abs(net).toLocaleString();
+  document.getElementById('stat-net-sub').textContent = net > 0 ? `+${net} Surplus` : net < 0 ? `-${Math.abs(net)} Deficit` : 'Balanced';
 
-  // Sum Intake & Burn
-  const totalIntake = state.ledger.meals.reduce((sum, item) => sum + item.calories, 0);
-  const totalBurn = state.ledger.workouts.reduce((sum, item) => sum + item.calories, 0);
-  const netCal = totalIntake - totalBurn;
-
-  document.getElementById('stat-intake-cal').textContent = totalIntake.toLocaleString();
-  document.getElementById('stat-intake-sub').textContent = `${state.ledger.meals.length} meal(s) logged`;
-
-  document.getElementById('stat-burn-cal').textContent = totalBurn.toLocaleString();
-  document.getElementById('stat-burn-sub').textContent = `${state.ledger.workouts.length} workout(s) logged`;
-
-  const statNet = document.getElementById('stat-net-cal');
-  const statNetStatus = document.getElementById('stat-net-status');
-  statNet.textContent = Math.abs(netCal).toLocaleString();
-  if (netCal > 0) {
-    statNet.style.color = 'var(--amber)';
-    statNetStatus.textContent = `+${netCal.toLocaleString()} kcal Surplus`;
-  } else if (netCal < 0) {
-    statNet.style.color = 'var(--green)';
-    statNetStatus.textContent = `-${Math.abs(netCal).toLocaleString()} kcal Deficit`;
-  } else {
-    statNet.style.color = 'var(--ink)';
-    statNetStatus.textContent = 'Balanced';
-  }
-
-  // Update Tab Count
-  const totalItems = state.ledger.meals.length + state.ledger.workouts.length;
-  document.getElementById('tab-ledger-count').textContent = totalItems;
-
-  // Progress Bar
-  const pct = Math.min(100, Math.round((totalIntake / targetCal) * 100));
-  const bar = document.getElementById('ledger-progress-bar');
+  const pct = Math.min(100, Math.round((totalIn / target) * 100));
+  document.getElementById('bar-pct').textContent = pct + '%';
+  const bar = document.getElementById('energy-bar-fill');
   bar.style.width = pct + '%';
-  document.getElementById('ledger-progress-percent').textContent = pct + '%';
-  if (pct > 100) bar.style.background = 'var(--red)';
-  else bar.style.background = 'var(--amber)';
-
-  // Render Meal List
-  const mealsList = document.getElementById('ledger-meals-list');
-  document.getElementById('ledger-meals-total').textContent = `${totalIntake.toLocaleString()} kcal`;
-  if (state.ledger.meals.length === 0) {
-    mealsList.innerHTML = '<li class="ledger-empty">No food items logged today yet.</li>';
+  if (pct > 110) {
+    bar.style.background = 'linear-gradient(90deg, var(--red), #FF6B6B)';
+    bar.style.boxShadow = '0 0 10px rgba(255,23,68,0.5)';
   } else {
-    mealsList.innerHTML = state.ledger.meals.map(item => `
-      <li class="ledger-item">
-        <div>
-          <div class="ledger-item-title">${escapeHtml(item.name)}</div>
-          <div class="ledger-item-meta">${item.time} · P:${item.protein}g C:${item.carbs}g F:${item.fat}g</div>
-        </div>
-        <div style="display:flex; align-items:center; gap:8px;">
-          <span class="ledger-item-cal" style="color:var(--amber);">+${item.calories}</span>
-          <button class="ledger-item-del" onclick="deleteMeal(${item.id})">✖</button>
-        </div>
-      </li>
-    `).join('');
+    bar.style.background = 'linear-gradient(90deg, var(--orange), var(--orange2))';
+    bar.style.boxShadow = '0 0 10px rgba(255,61,0,0.4)';
   }
 
-  // Render Workout List
-  const workoutsList = document.getElementById('ledger-workouts-list');
-  document.getElementById('ledger-workouts-total').textContent = `${totalBurn.toLocaleString()} kcal`;
-  if (state.ledger.workouts.length === 0) {
-    workoutsList.innerHTML = '<li class="ledger-empty">No workouts logged today yet.</li>';
+  // Meals list
+  const mealsList = document.getElementById('meals-list');
+  document.getElementById('meals-total').textContent = totalIn.toLocaleString() + ' kcal';
+  if (!state.ledger.meals.length) {
+    mealsList.innerHTML = '<li class="ledger-empty">No meals logged today.</li>';
   } else {
-    workoutsList.innerHTML = state.ledger.workouts.map(item => `
+    mealsList.innerHTML = state.ledger.meals.map(m => `
       <li class="ledger-item">
         <div>
-          <div class="ledger-item-title">${escapeHtml(item.name)}</div>
-          <div class="ledger-item-meta">${item.time} · ${item.duration} minutes</div>
+          <div class="ledger-item-name">${esc(m.name)}</div>
+          <div class="ledger-item-meta">${m.time} · P:${m.protein}g C:${m.carbs}g F:${m.fat}g</div>
         </div>
         <div style="display:flex; align-items:center; gap:8px;">
-          <span class="ledger-item-cal" style="color:var(--green);">-${item.calories}</span>
-          <button class="ledger-item-del" onclick="deleteWorkout(${item.id})">✖</button>
+          <div class="ledger-item-cal in">+${m.calories}</div>
+          <button class="del-btn" onclick="delMeal(${m.id})">✕</button>
         </div>
-      </li>
-    `).join('');
+      </li>`).join('');
+  }
+
+  // Workouts list
+  const wList = document.getElementById('workouts-list');
+  document.getElementById('workouts-total').textContent = totalOut.toLocaleString() + ' kcal';
+  if (!state.ledger.workouts.length) {
+    wList.innerHTML = '<li class="ledger-empty">No workouts logged today.</li>';
+  } else {
+    wList.innerHTML = state.ledger.workouts.map(w => `
+      <li class="ledger-item">
+        <div>
+          <div class="ledger-item-name">${esc(w.name)}</div>
+          <div class="ledger-item-meta">${w.time} · ${w.duration} minutes</div>
+        </div>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <div class="ledger-item-cal out">-${w.calories}</div>
+          <button class="del-btn" onclick="delWorkout(${w.id})">✕</button>
+        </div>
+      </li>`).join('');
   }
 }
 
-function deleteMeal(id) {
-  playSound('click');
+function delMeal(id) {
+  playBeep('click');
   state.ledger.meals = state.ledger.meals.filter(m => m.id !== id);
-  saveState();
+  save();
 }
-
-function deleteWorkout(id) {
-  playSound('click');
+function delWorkout(id) {
+  playBeep('click');
   state.ledger.workouts = state.ledger.workouts.filter(w => w.id !== id);
-  saveState();
+  save();
 }
 
-document.getElementById('btn-clear-ledger').addEventListener('click', () => {
-  if (confirm('Reset daily log? This will clear logged meals and workouts for today.')) {
-    playSound('click');
+document.getElementById('btn-clear').addEventListener('click', () => {
+  if (confirm('Reset today\'s entire log?')) {
+    playBeep('click');
     state.ledger = { meals: [], workouts: [] };
-    saveState();
+    save();
   }
 });
 
-// ==================== GEMINI AI COACH CHAT ====================
-async function sendChatMessage(userText) {
-  if (!userText.trim()) return;
-  playSound('click');
+// ========================== COACH DATA ==========================
+function renderCoachData() {
+  const totalIn = state.ledger.meals.reduce((s, m) => s + m.calories, 0);
+  const totalOut = state.ledger.workouts.reduce((s, w) => s + w.calories, 0);
+  const net = totalIn - totalOut;
+  const target = state.profile.target || 2200;
+  document.getElementById('coach-target').textContent = target.toLocaleString() + ' kcal';
+  document.getElementById('coach-in').textContent = totalIn.toLocaleString() + ' kcal';
+  document.getElementById('coach-out').textContent = totalOut.toLocaleString() + ' kcal';
+  document.getElementById('coach-net').textContent = (net > 0 ? '+' : '') + net.toLocaleString() + ' kcal';
+}
 
-  const messagesDiv = document.getElementById('chat-messages');
-  
-  // Append User Msg
-  const userMsgEl = document.createElement('div');
-  userMsgEl.className = 'chat-msg user';
-  userMsgEl.textContent = userText;
-  messagesDiv.appendChild(userMsgEl);
-  messagesDiv.scrollTop = messagesDiv.scrollHeight;
+// ========================== GEMINI CHAT ==========================
+async function sendChat(msg) {
+  if (!msg.trim()) return;
+  playBeep('click');
 
-  document.getElementById('chat-input').value = '';
+  const messages = document.getElementById('chat-messages');
+  const input = document.getElementById('chat-input');
 
-  // Append Loading Assistant Msg
-  const assistEl = document.createElement('div');
-  assistEl.className = 'chat-msg assistant';
-  assistEl.textContent = 'Gemini 2.5 thinking...';
-  messagesDiv.appendChild(assistEl);
-  messagesDiv.scrollTop = messagesDiv.scrollHeight;
+  const userEl = document.createElement('div');
+  userEl.className = 'chat-msg user';
+  userEl.textContent = msg;
+  messages.appendChild(userEl);
+  input.value = '';
 
-  const key = state.apiKey || DEFAULT_API_KEY;
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`;
+  const thinkEl = document.createElement('div');
+  thinkEl.className = 'chat-msg thinking';
+  thinkEl.textContent = '⚡ Gemini AI is thinking...';
+  messages.appendChild(thinkEl);
+  messages.scrollTop = messages.scrollHeight;
 
-  const totalIntake = state.ledger.meals.reduce((sum, i) => sum + i.calories, 0);
-  const totalBurn = state.ledger.workouts.reduce((sum, i) => sum + i.calories, 0);
-  
-  const context = `User Profile: Name: ${state.profile.name}, Weight: ${state.profile.weight}kg, Goal: ${state.profile.goal}, Daily Calorie Target: ${state.profile.target} kcal.
-Current Logged Intake Today: ${totalIntake} kcal across ${state.ledger.meals.length} meals.
-Current Logged Workout Burn Today: ${totalBurn} kcal across ${state.ledger.workouts.length} workouts.`;
+  const key = state.apiKey;
+  if (!key) {
+    thinkEl.className = 'chat-msg assistant';
+    thinkEl.textContent = '⚙ Please set your Gemini API key first using the ⚙ API KEY button at the top.';
+    return;
+  }
 
-  const payload = {
-    contents: [{
-      parts: [{
-        text: `System: You are an expert fitness coach and sports nutritionist. Answer concisely in 2-4 sentences based on user context.\nContext: ${context}\nUser Question: ${userText}`
-      }]
-    }]
-  };
+  const totalIn = state.ledger.meals.reduce((s, m) => s + m.calories, 0);
+  const totalOut = state.ledger.workouts.reduce((s, w) => s + w.calories, 0);
+  const context = `Athlete: ${state.profile.name}, ${state.profile.weight}kg, Goal: ${state.profile.goal}, Daily Target: ${state.profile.target} kcal. Today — Intake: ${totalIn} kcal across ${state.ledger.meals.length} meals. Burned: ${totalOut} kcal across ${state.ledger.workouts.length} workouts.`;
 
   try {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`;
     const res = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
+      body: JSON.stringify({ contents: [{ parts: [{ text: `You are an elite fitness coach and sports nutritionist. Be direct, energetic, and practical. Answer in 2-4 concise sentences tailored to the athlete.\n\nContext: ${context}\n\nAthlete asks: ${msg}` }] }] })
     });
-    if (!res.ok) throw new Error('API Error ' + res.status);
     const data = await res.json();
-    const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || 'Sorry, I could not generate a response right now.';
-    assistEl.textContent = reply;
-    playSound('success');
-  } catch(e) {
-    assistEl.textContent = 'Error calling Gemini AI: ' + e.message;
+    const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || 'Could not generate a response. Check your API key.';
+    thinkEl.className = 'chat-msg assistant';
+    thinkEl.textContent = reply;
+    playBeep('success');
+  } catch(err) {
+    thinkEl.className = 'chat-msg assistant';
+    thinkEl.textContent = 'Error: ' + err.message;
+    playBeep('error');
   }
-  messagesDiv.scrollTop = messagesDiv.scrollHeight;
+  messages.scrollTop = messages.scrollHeight;
 }
 
-document.getElementById('btn-chat-send').addEventListener('click', () => {
-  sendChatMessage(document.getElementById('chat-input').value);
-});
+document.getElementById('btn-chat-send').addEventListener('click', () => sendChat(document.getElementById('chat-input').value));
+document.getElementById('chat-input').addEventListener('keypress', e => { if (e.key === 'Enter') sendChat(e.target.value); });
+document.querySelectorAll('[data-ask]').forEach(btn => btn.addEventListener('click', () => sendChat(btn.dataset.ask)));
 
-document.getElementById('chat-input').addEventListener('keypress', (e) => {
-  if (e.key === 'Enter') sendChatMessage(e.target.value);
-});
-
-document.querySelectorAll('[data-ask]').forEach(btn => {
-  btn.addEventListener('click', () => {
-    sendChatMessage(btn.dataset.ask);
-  });
-});
-
-// Initial UI Render
-updateUI();
+// ========================== INIT ==========================
+renderLedger();
+renderCoachData();
 </script>
 </body>
 </html>

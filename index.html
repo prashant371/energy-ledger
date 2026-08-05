@@ -1253,6 +1253,25 @@ input[type="range"]::-moz-range-thumb {
 
 .modal-btns { display: flex; gap: 10px; margin-top: 20px; }
 
+/* ---- GRADE BADGES ---- */
+.grade-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 4px;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.2rem;
+  border: 2px solid;
+  flex-shrink: 0;
+}
+.grade-a { background: rgba(0,255,178,0.1); border-color: var(--neon); color: var(--neon); }
+.grade-b { background: rgba(0,229,255,0.1); border-color: var(--neon2); color: var(--neon2); }
+.grade-c { background: rgba(255,214,0,0.1); border-color: var(--yellow); color: var(--yellow); }
+.grade-d { background: rgba(255,109,0,0.1); border-color: var(--orange2); color: var(--orange2); }
+.grade-e { background: rgba(255,23,68,0.1); border-color: var(--red); color: var(--red); }
+
 /* ---- FOOTER ---- */
 .footer {
   border-top: 1px solid var(--border);
@@ -1307,6 +1326,7 @@ input[type="range"]::-moz-range-thumb {
     <button class="tab-btn" data-tab="machine">🏋 Scan Machine</button>
     <button class="tab-btn" data-tab="ledger">📊 Ledger <span class="tab-count" id="tab-count">0</span></button>
     <button class="tab-btn" data-tab="coach">🤖 AI Coach</button>
+    <button class="tab-btn" data-tab="grade">🔬 Food Grade</button>
   </div>
 </div>
 
@@ -1712,6 +1732,134 @@ input[type="range"]::-moz-range-thumb {
           </div>
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- ========== PANEL: FOOD GRADE SCANNER ========== -->
+  <div class="panel" id="panel-grade">
+    <div class="layout">
+
+      <!-- LEFT: Scan Controls -->
+      <div class="viewfinder-container">
+        <div class="section-header">
+          <div class="section-title">LABEL SCANNER</div>
+          <div class="section-sub">Snap or upload a <strong style="color:var(--orange)">packed / processed food label</strong> — ingredients list must be visible</div>
+        </div>
+
+        <!-- Warning Banner -->
+        <div style="background:rgba(255,61,0,0.07); border:1px solid rgba(255,61,0,0.25); border-left:4px solid var(--orange); border-radius:4px; padding:12px 14px; margin-bottom:14px; font-size:13px; color:rgba(255,255,255,0.75); line-height:1.55;">
+          ⚠️ <strong style="color:var(--orange);">Packed food only.</strong> Point at the ingredient label on the back/side of the package. This scanner is designed for chips, beverages, snacks, cereals, sauces, instant foods, etc.
+        </div>
+
+        <div class="viewfinder" id="vf-grade">
+          <div class="reticle tl"></div><div class="reticle tr"></div>
+          <div class="reticle bl"></div><div class="reticle br"></div>
+          <div class="scan-line"></div>
+          <div class="vf-placeholder" id="vf-grade-ph">
+            <div class="vf-icon">🔬</div>
+            <div class="vf-text">DROP FOOD LABEL PHOTO HERE<br>or tap to upload · camera below</div>
+          </div>
+          <video id="webcam-grade" style="display:none;" autoplay playsinline></video>
+        </div>
+        <input type="file" accept="image/*" id="input-grade" style="display:none">
+
+        <div class="camera-controls">
+          <button class="btn btn-ghost" id="btn-cam-grade">📷 LIVE CAMERA</button>
+          <button class="btn btn-ghost" id="btn-snap-grade" style="display:none;">📸 SNAP PHOTO</button>
+        </div>
+
+        <button class="btn" id="btn-analyze-grade" disabled style="margin-top:14px;">🔬 GRADE THIS PRODUCT</button>
+
+        <!-- Grading Legend -->
+        <div style="background:var(--card); border:1px solid var(--border); border-radius:6px; padding:14px; margin-top:16px;">
+          <div class="presets-label" style="margin-bottom:10px;">Grading Scale</div>
+          <div style="display:flex; flex-direction:column; gap:7px; font-size:13px;">
+            <div style="display:flex; align-items:center; gap:10px;">
+              <span class="grade-badge grade-a">A</span>
+              <span style="color:var(--muted);">Excellent — clean label, no harmful additives</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:10px;">
+              <span class="grade-badge grade-b">B</span>
+              <span style="color:var(--muted);">Good — minor additives, low concern</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:10px;">
+              <span class="grade-badge grade-c">C</span>
+              <span style="color:var(--muted);">Fair — moderate additives, consume in moderation</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:10px;">
+              <span class="grade-badge grade-d">D</span>
+              <span style="color:var(--muted);">Poor — several harmful ingredients, limit intake</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:10px;">
+              <span class="grade-badge grade-e">E</span>
+              <span style="color:var(--muted);">Avoid — highly processed, multiple red-flag additives</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: Grade Result Display -->
+      <div>
+        <div class="section-header">
+          <div class="section-title">GRADE RESULT</div>
+          <div class="section-sub">AI ingredient safety analysis</div>
+        </div>
+
+        <div id="grade-result-panel">
+          <!-- Empty state -->
+          <div id="grade-empty" style="background:var(--card); border:1px solid var(--border); border-radius:8px; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:60px 20px; text-align:center; gap:12px;">
+            <div style="font-size:48px; opacity:0.3;">🔬</div>
+            <div class="card-empty-title">NO SCAN YET</div>
+            <div class="card-empty-sub">Upload a food label to get an instant safety grade</div>
+          </div>
+
+          <!-- Result (hidden until scan) -->
+          <div id="grade-output" style="display:none;">
+
+            <!-- Grade Hero Card -->
+            <div id="grade-hero" style="background:var(--card); border:1px solid var(--border); border-radius:8px; overflow:hidden; margin-bottom:14px; box-shadow:0 8px 32px rgba(0,0,0,0.4);">
+              <div id="grade-hero-bar" style="height:4px; width:100%; background:var(--neon);"></div>
+              <div style="padding:22px; display:flex; align-items:center; gap:20px;">
+                <div id="grade-letter-display" style="width:90px; height:90px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-family:'Bebas Neue',sans-serif; font-size:4rem; flex-shrink:0; border:2px solid;">A</div>
+                <div style="flex:1;">
+                  <div id="grade-product-name" style="font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:1.3rem; text-transform:uppercase; color:var(--white); margin-bottom:4px;">Product Name</div>
+                  <div id="grade-verdict" style="font-size:13px; color:var(--muted); line-height:1.5;">Loading verdict...</div>
+                  <div style="margin-top:10px; display:flex; align-items:center; gap:8px;">
+                    <div style="font-family:'Share Tech Mono',monospace; font-size:10px; color:var(--muted); letter-spacing:0.1em; text-transform:uppercase;">Safety Score:</div>
+                    <div id="grade-score-bar-wrap" style="flex:1; height:6px; background:rgba(255,255,255,0.06); border-radius:100px; overflow:hidden;">
+                      <div id="grade-score-bar" style="height:100%; width:0%; border-radius:100px; transition:width 1s cubic-bezier(0.4,0,0.2,1);"></div>
+                    </div>
+                    <div id="grade-score-label" style="font-family:'Share Tech Mono',monospace; font-size:12px; font-weight:700;">0/10</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Harmful Ingredients Section -->
+            <div id="grade-harmful-section" style="background:var(--card); border:1px solid rgba(255,23,68,0.2); border-radius:8px; overflow:hidden; margin-bottom:14px;">
+              <div style="background:rgba(255,23,68,0.08); border-bottom:1px solid rgba(255,23,68,0.15); padding:12px 16px; display:flex; justify-content:space-between; align-items:center;">
+                <div style="font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:14px; letter-spacing:0.06em; text-transform:uppercase; color:#FF6B6B;">⚠ Harmful / Concerning Ingredients</div>
+                <span id="harmful-count-badge" style="font-family:'Share Tech Mono',monospace; font-size:10px; padding:3px 8px; border-radius:3px; background:rgba(255,23,68,0.15); border:1px solid rgba(255,23,68,0.3); color:#FF6B6B;">0 Found</span>
+              </div>
+              <div id="harmful-ingredients-list" style="padding:14px 16px;"></div>
+            </div>
+
+            <!-- Safe Ingredients Section -->
+            <div style="background:var(--card); border:1px solid rgba(0,255,178,0.1); border-radius:8px; overflow:hidden; margin-bottom:14px;">
+              <div style="background:rgba(0,255,178,0.05); border-bottom:1px solid rgba(0,255,178,0.1); padding:12px 16px; display:flex; justify-content:space-between; align-items:center;">
+                <div style="font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:14px; letter-spacing:0.06em; text-transform:uppercase; color:var(--neon);">✓ Clean / Safe Ingredients</div>
+                <span id="safe-count-badge" style="font-family:'Share Tech Mono',monospace; font-size:10px; padding:3px 8px; border-radius:3px; background:rgba(0,255,178,0.08); border:1px solid rgba(0,255,178,0.2); color:var(--neon);">0 Found</span>
+              </div>
+              <div id="safe-ingredients-list" style="padding:14px 16px;"></div>
+            </div>
+
+            <!-- AI Advice -->
+            <div id="grade-advice-box" style="background:var(--card); border:1px solid var(--border); border-radius:8px; padding:16px; font-size:13px; color:var(--muted); line-height:1.6;"></div>
+
+          </div>
+        </div>
+      </div>
+
     </div>
   </div>
 
@@ -2574,6 +2722,171 @@ async function sendChat(msg) {
 document.getElementById('btn-chat-send').addEventListener('click', () => sendChat(document.getElementById('chat-input').value));
 document.getElementById('chat-input').addEventListener('keypress', e => { if (e.key === 'Enter') sendChat(e.target.value); });
 document.querySelectorAll('[data-ask]').forEach(btn => btn.addEventListener('click', () => sendChat(btn.dataset.ask)));
+
+// ========================== FOOD GRADE SCANNER ==========================
+
+// Wire up grade viewfinder
+wireVF('vf-grade', 'input-grade', 'vf-grade-ph', 'webcam-grade', 'btn-cam-grade', 'btn-snap-grade', (img) => {
+  state.gradeImg = img;
+  document.getElementById('btn-analyze-grade').disabled = false;
+});
+
+const GRADE_STYLES = {
+  A: { bg: 'rgba(0,255,178,0.1)', border: 'var(--neon)', text: 'var(--neon)', barBg: 'var(--neon)', shadow: 'var(--glow-n)' },
+  B: { bg: 'rgba(0,229,255,0.1)', border: 'var(--neon2)', text: 'var(--neon2)', barBg: 'var(--neon2)', shadow: 'var(--glow-b)' },
+  C: { bg: 'rgba(255,214,0,0.1)', border: 'var(--yellow)', text: 'var(--yellow)', barBg: 'var(--yellow)', shadow: 'var(--glow-y)' },
+  D: { bg: 'rgba(255,109,0,0.1)', border: 'var(--orange2)', text: 'var(--orange2)', barBg: 'var(--orange2)', shadow: 'var(--glow-o)' },
+  E: { bg: 'rgba(255,23,68,0.1)', border: 'var(--red)', text: 'var(--red)', barBg: 'var(--red)', shadow: '0 0 20px rgba(255,23,68,0.5)' },
+};
+
+const HARM_LEVELS = {
+  high: { color: '#FF4444', bg: 'rgba(255,23,68,0.08)', border: 'rgba(255,23,68,0.2)', label: 'HIGH RISK' },
+  medium: { color: 'var(--orange)', bg: 'rgba(255,61,0,0.07)', border: 'rgba(255,61,0,0.2)', label: 'MODERATE' },
+  low: { color: 'var(--yellow)', bg: 'rgba(255,214,0,0.06)', border: 'rgba(255,214,0,0.2)', label: 'LOW CONCERN' },
+};
+
+document.getElementById('btn-analyze-grade').addEventListener('click', async () => {
+  if (!state.gradeImg) return;
+  playBeep('click');
+
+  const btn = document.getElementById('btn-analyze-grade');
+  const gradeEmpty = document.getElementById('grade-empty');
+  const gradeOutput = document.getElementById('grade-output');
+  const vf = document.getElementById('vf-grade');
+
+  btn.disabled = true;
+  btn.textContent = '⚡ GEMINI ANALYZING LABEL...';
+  vf.classList.add('scanning');
+  gradeEmpty.style.display = 'flex';
+  gradeEmpty.innerHTML = '<div style="font-size:36px;">⚡</div><div class="card-empty-title">SCANNING INGREDIENTS...</div><div class="card-empty-sub">Gemini AI is reading the label and checking for harmful additives</div>';
+  gradeOutput.style.display = 'none';
+
+  const prompt = `You are an expert food safety analyst and nutritionist specializing in food additives, preservatives, and ingredient safety.
+Analyze this image of a PACKED FOOD PRODUCT label or ingredient list.
+
+IMPORTANT: This tool is ONLY for packed/processed foods. If the image does NOT show a food package label or ingredient list, set "is_packed_food": false.
+
+For each ingredient, evaluate it against known food safety databases (EFSA, FDA, EWG, FSSAI). Classify each ingredient as harmful or safe.
+
+Harmful ingredients to flag include (but are not limited to):
+- Artificial preservatives: Sodium benzoate (E211), Potassium sorbate (E202), TBHQ (E319), BHA (E320), BHT (E321), Sodium nitrate/nitrite (E250/E251)
+- Artificial colors: Tartrazine (E102/Yellow 5), Sunset Yellow (E110/Yellow 6), Allura Red (E129/Red 40), Brilliant Blue (E133), Carmoisine (E122)
+- Artificial sweeteners: Aspartame (E951), Saccharin (E954), Acesulfame-K (E950), Sucralose (E955)
+- Trans fats: Partially hydrogenated oils, hydrogenated vegetable fat
+- Flavor enhancers: MSG (E621), Disodium inosinate (E631), Disodium guanylate (E627)
+- Others: High fructose corn syrup, Carrageenan (E407), Propylene glycol (E1520), Titanium dioxide (E171), Brominated vegetable oil
+
+Return ONLY valid JSON with exactly these keys:
+{
+  "is_packed_food": boolean,
+  "product_name": "string - product name if visible, else 'Unknown Product'",
+  "grade": "A" or "B" or "C" or "D" or "E",
+  "safety_score": integer from 1 to 10 (10 = perfectly safe, 1 = very harmful),
+  "verdict": "string - 2-3 sentence overall safety verdict",
+  "harmful_ingredients": [
+    {
+      "name": "string",
+      "code": "string - E-code or chemical name",
+      "risk_level": "high" or "medium" or "low",
+      "why_harmful": "string - brief explanation of risk"
+    }
+  ],
+  "safe_ingredients": ["string array of clean ingredients found"],
+  "advice": "string - 2-3 sentences of actionable health advice for a gym athlete"
+}`;
+
+  try {
+    const result = await callGemini(state.gradeImg.base64, state.gradeImg.mediaType, prompt);
+    vf.classList.remove('scanning');
+
+    if (!result.is_packed_food) {
+      gradeEmpty.style.display = 'flex';
+      gradeEmpty.innerHTML = '<div style="font-size:36px;">⚠️</div><div class="card-empty-title">NOT A PACKED FOOD</div><div class="card-empty-sub">This scanner only works with packaged/processed food labels with a visible ingredients list. Please upload an image of a food package.</div>';
+      playBeep('error');
+    } else {
+      renderGradeResult(result);
+      gradeEmpty.style.display = 'none';
+      gradeOutput.style.display = 'block';
+      playBeep('success');
+    }
+  } catch(err) {
+    vf.classList.remove('scanning');
+    gradeEmpty.style.display = 'flex';
+    gradeEmpty.innerHTML = `<div style="font-size:36px;">❌</div><div class="card-empty-title">SCAN FAILED</div><div class="card-empty-sub" style="color:var(--red);">${esc(err.message)}</div>`;
+    playBeep('error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '🔬 GRADE THIS PRODUCT';
+  }
+});
+
+function renderGradeResult(r) {
+  const grade = (r.grade || 'E').toUpperCase();
+  const style = GRADE_STYLES[grade] || GRADE_STYLES.E;
+  const safetyScore = Math.max(1, Math.min(10, r.safety_score || 5));
+
+  // Grade letter hero
+  const letterEl = document.getElementById('grade-letter-display');
+  letterEl.textContent = grade;
+  letterEl.style.background = style.bg;
+  letterEl.style.borderColor = style.border;
+  letterEl.style.color = style.text;
+  letterEl.style.boxShadow = style.shadow;
+
+  document.getElementById('grade-hero-bar').style.background = style.barBg;
+  document.getElementById('grade-product-name').textContent = (r.product_name || 'Unknown Product').toUpperCase();
+  document.getElementById('grade-verdict').textContent = r.verdict || '';
+
+  // Score bar
+  const scoreBar = document.getElementById('grade-score-bar');
+  scoreBar.style.background = style.barBg;
+  scoreBar.style.boxShadow = style.shadow;
+  document.getElementById('grade-score-label').textContent = safetyScore + '/10';
+  document.getElementById('grade-score-label').style.color = style.text;
+  setTimeout(() => { scoreBar.style.width = (safetyScore * 10) + '%'; }, 80);
+
+  // Harmful Ingredients
+  const harmfulList = r.harmful_ingredients || [];
+  document.getElementById('harmful-count-badge').textContent = harmfulList.length + ' Found';
+  const harmfulEl = document.getElementById('harmful-ingredients-list');
+  if (harmfulList.length === 0) {
+    harmfulEl.innerHTML = '<div style="color:var(--neon); font-size:13px; text-align:center; padding:10px;">✅ No harmful ingredients detected!</div>';
+  } else {
+    harmfulEl.innerHTML = harmfulList.map(ing => {
+      const hl = HARM_LEVELS[ing.risk_level] || HARM_LEVELS.low;
+      return `
+        <div style="background:${hl.bg}; border:1px solid ${hl.border}; border-radius:6px; padding:12px 14px; margin-bottom:10px; animation:panel-in 0.3s ease-out;">
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:6px;">
+            <div>
+              <span style="font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:14px; color:${hl.color}; text-transform:uppercase; letter-spacing:0.04em;">${esc(ing.name)}</span>
+              ${ing.code ? `<span style="font-family:'Share Tech Mono',monospace; font-size:10px; color:rgba(255,255,255,0.4); margin-left:8px;">${esc(ing.code)}</span>` : ''}
+            </div>
+            <span style="font-family:'Share Tech Mono',monospace; font-size:9px; padding:2px 7px; border-radius:3px; background:${hl.bg}; border:1px solid ${hl.border}; color:${hl.color}; white-space:nowrap; flex-shrink:0; margin-left:10px;">${hl.label}</span>
+          </div>
+          <div style="font-size:12px; color:rgba(255,255,255,0.55); line-height:1.5;">${esc(ing.why_harmful)}</div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  // Safe Ingredients
+  const safeList = r.safe_ingredients || [];
+  document.getElementById('safe-count-badge').textContent = safeList.length + ' Found';
+  const safeEl = document.getElementById('safe-ingredients-list');
+  if (safeList.length === 0) {
+    safeEl.innerHTML = '<div style="color:var(--muted); font-size:13px;">Could not identify clean ingredients.</div>';
+  } else {
+    safeEl.innerHTML = '<div style="display:flex; flex-wrap:wrap; gap:6px;">' +
+      safeList.map(s => `<span style="font-family:'Barlow Condensed',sans-serif; font-size:12px; font-weight:600; padding:4px 10px; background:rgba(0,255,178,0.06); border:1px solid rgba(0,255,178,0.15); border-radius:4px; color:rgba(0,255,178,0.75); text-transform:uppercase; letter-spacing:0.04em;">${esc(s)}</span>`).join('') +
+      '</div>';
+  }
+
+  // AI Advice
+  document.getElementById('grade-advice-box').innerHTML = `
+    <div style="font-family:'Share Tech Mono',monospace; font-size:10px; letter-spacing:0.12em; text-transform:uppercase; color:var(--orange); margin-bottom:8px;">⚡ Coach Advice</div>
+    <div>${esc(r.advice || '')}</div>
+  `;
+}
 
 // ========================== INIT ==========================
 renderLedger();

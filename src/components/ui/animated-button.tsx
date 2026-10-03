@@ -8,8 +8,9 @@ function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-type AnimatedButtonProps = HTMLMotionProps<"button"> & {
+type AnimatedButtonProps = Omit<HTMLMotionProps<"button">, "children"> & {
   className?: string;
+  children?: React.ReactNode;
 };
 
 export const AnimatedButton = React.forwardRef<

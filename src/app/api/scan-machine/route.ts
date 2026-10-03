@@ -1,19 +1,5 @@
 import { NextResponse } from 'next/server';
-
-const GEMINI_MODEL = 'gemini-2.0-flash-lite';
-const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
-
-function getAuthHeaders(apiKey: string) {
-  if (apiKey.startsWith('AQ') || apiKey.startsWith('ya29')) {
-    return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` };
-  }
-  return { 'Content-Type': 'application/json' };
-}
-
-function getUrl(apiKey: string) {
-  if (apiKey.startsWith('AQ') || apiKey.startsWith('ya29')) return GEMINI_URL;
-  return `${GEMINI_URL}?key=${apiKey}`;
-}
+import { GoogleGenAI } from '@google/genai';
 
 export async function POST(req: Request) {
   try {
@@ -22,32 +8,24 @@ export async function POST(req: Request) {
 
     if (!apiKey) return NextResponse.json({ error: "GEMINI_API_KEY is not set." }, { status: 500 });
 
-    const response = await fetch(getUrl(apiKey), {
-      method: 'POST',
-      headers: getAuthHeaders(apiKey),
-      body: JSON.stringify({
-        contents: [{
-          parts: [
-            { text: `You are a fitness and gym equipment expert. Analyze this gym machine photo and return a JSON object ONLY (no markdown). Structure:\n{\n  "machineName": "string",\n  "category": "string",\n  "primaryMuscles": ["string"],\n  "secondaryMuscles": ["string"],\n  "metValue": number,\n  "caloriesBurnedPerHour": number,\n  "difficultyLevel": "string",\n  "formTips": ["string"],\n  "commonMistakes": ["string"],\n  "safetyNotes": "string"\n}` },
-            { inline_data: { mime_type: mimeType || 'image/jpeg', data: imageBase64 } }
-          ]
-        }]
-      })
+    const ai = new GoogleGenAI({ apiKey });
+
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.0-flash',
+      contents: [{
+        parts: [
+          { text: `You are a fitness and gym equipment expert. Analyze this gym machine photo and return a JSON object ONLY (no markdown). Structure:\n{\n  "machineName": "string",\n  "category": "string",\n  "primaryMuscles": ["string"],\n  "secondaryMuscles": ["string"],\n  "metValue": number,\n  "caloriesBurnedPerHour": number,\n  "difficultyLevel": "string",\n  "formTips": ["string"],\n  "commonMistakes": ["string"],\n  "safetyNotes": "string"\n}` },
+          { inlineData: { mimeType: mimeType || 'image/jpeg', data: imageBase64 } }
+        ]
+      }]
     });
 
-    const data = await response.json();
-    if (!response.ok) {
-      const errMsg = data?.error?.message || JSON.stringify(data);
-      console.error("Gemini /api/scan-machine error:", response.status, errMsg);
-      return NextResponse.json({ error: `Gemini API Error (${response.status}): ${errMsg}` }, { status: response.status });
-    }
-
-    const raw = data.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
+    const raw = response.text ?? '{}';
     const cleaned = raw.replace(/```json|```/g, '').trim();
     return NextResponse.json(JSON.parse(cleaned));
 
   } catch (error: any) {
-    console.error("Internal error /api/scan-machine:", error);
-    return NextResponse.json({ error: `Internal Server Error: ${error?.message}` }, { status: 500 });
+    console.error("Error /api/scan-machine:", error);
+    return NextResponse.json({ error: error?.message || "Internal Server Error" }, { status: 500 });
   }
 }

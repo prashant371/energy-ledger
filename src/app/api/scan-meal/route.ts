@@ -1,6 +1,19 @@
 import { NextResponse } from 'next/server';
 
 const GEMINI_MODEL = 'gemini-2.0-flash-lite';
+const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
+
+function getAuthHeaders(apiKey: string) {
+  if (apiKey.startsWith('AQ') || apiKey.startsWith('ya29')) {
+    return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` };
+  }
+  return { 'Content-Type': 'application/json' };
+}
+
+function getUrl(apiKey: string) {
+  if (apiKey.startsWith('AQ') || apiKey.startsWith('ya29')) return GEMINI_URL;
+  return `${GEMINI_URL}?key=${apiKey}`;
+}
 
 export async function POST(req: Request) {
   try {
@@ -9,21 +22,18 @@ export async function POST(req: Request) {
 
     if (!apiKey) return NextResponse.json({ error: "GEMINI_API_KEY is not set." }, { status: 500 });
 
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${apiKey}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{
-            parts: [
-              { text: `You are a professional nutritionist. Analyze this meal photo and return a JSON object ONLY (no markdown, no explanation). Structure:\n{\n  "mealName": "string",\n  "totalCalories": number,\n  "protein": number,\n  "carbs": number,\n  "fat": number,\n  "fiber": number,\n  "servingSize": "string",\n  "healthScore": number,\n  "healthLabel": "string",\n  "ingredients": ["string"],\n  "tips": ["string"]\n}` },
-              { inline_data: { mime_type: mimeType || 'image/jpeg', data: imageBase64 } }
-            ]
-          }]
-        })
-      }
-    );
+    const response = await fetch(getUrl(apiKey), {
+      method: 'POST',
+      headers: getAuthHeaders(apiKey),
+      body: JSON.stringify({
+        contents: [{
+          parts: [
+            { text: `You are a professional nutritionist. Analyze this meal photo and return a JSON object ONLY (no markdown, no explanation). Structure:\n{\n  "mealName": "string",\n  "totalCalories": number,\n  "protein": number,\n  "carbs": number,\n  "fat": number,\n  "fiber": number,\n  "servingSize": "string",\n  "healthScore": number,\n  "healthLabel": "string",\n  "ingredients": ["string"],\n  "tips": ["string"]\n}` },
+            { inline_data: { mime_type: mimeType || 'image/jpeg', data: imageBase64 } }
+          ]
+        }]
+      })
+    });
 
     const data = await response.json();
     if (!response.ok) {

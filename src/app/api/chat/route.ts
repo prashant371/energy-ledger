@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { GoogleGenAI } from '@google/genai';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 export async function POST(req: Request) {
   try {
@@ -10,26 +10,22 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "GEMINI_API_KEY is not set." }, { status: 500 });
     }
 
-    const ai = new GoogleGenAI({ apiKey });
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const model = genAI.getGenerativeModel({
+      model: 'gemini-1.5-flash',
+      systemInstruction: "You are the IRON LOG AI Coach, an elite, highly motivating, and knowledgeable fitness and nutrition expert. You give concise, actionable, and science-backed advice on bodybuilding, fat loss, and metabolism. Speak with a confident, intense, gym-bro but highly intelligent tone."
+    });
 
     const history = messages.slice(0, -1).map((m: any) => ({
       role: m.role === 'assistant' ? 'model' : 'user',
       parts: [{ text: m.content }]
     }));
 
+    const chat = model.startChat({ history });
     const lastMessage = messages[messages.length - 1].content;
+    const result = await chat.sendMessage(lastMessage);
 
-    const chat = ai.chats.create({
-      model: 'gemini-2.0-flash',
-      config: {
-        systemInstruction: "You are the IRON LOG AI Coach, an elite, highly motivating, and knowledgeable fitness and nutrition expert. You give concise, actionable, and science-backed advice on bodybuilding, fat loss, and metabolism. Speak with a confident, intense, gym-bro but highly intelligent tone."
-      },
-      history
-    });
-
-    const response = await chat.sendMessage({ message: lastMessage });
-
-    return NextResponse.json({ message: response.text });
+    return NextResponse.json({ message: result.response.text() });
 
   } catch (error: any) {
     console.error("Error /api/chat:", error);

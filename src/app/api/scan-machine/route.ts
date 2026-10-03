@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { GoogleGenAI } from '@google/genai';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 export async function POST(req: Request) {
   try {
@@ -8,19 +8,29 @@ export async function POST(req: Request) {
 
     if (!apiKey) return NextResponse.json({ error: "GEMINI_API_KEY is not set." }, { status: 500 });
 
-    const ai = new GoogleGenAI({ apiKey });
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
 
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.0-flash',
-      contents: [{
-        parts: [
-          { text: `You are a fitness and gym equipment expert. Analyze this gym machine photo and return a JSON object ONLY (no markdown). Structure:\n{\n  "machineName": "string",\n  "category": "string",\n  "primaryMuscles": ["string"],\n  "secondaryMuscles": ["string"],\n  "metValue": number,\n  "caloriesBurnedPerHour": number,\n  "difficultyLevel": "string",\n  "formTips": ["string"],\n  "commonMistakes": ["string"],\n  "safetyNotes": "string"\n}` },
-          { inlineData: { mimeType: mimeType || 'image/jpeg', data: imageBase64 } }
-        ]
-      }]
-    });
+    const prompt = `You are a fitness and gym equipment expert. Analyze this gym machine photo and return a JSON object ONLY (no markdown). Structure:
+{
+  "machineName": "string",
+  "category": "string",
+  "primaryMuscles": ["string"],
+  "secondaryMuscles": ["string"],
+  "metValue": number,
+  "caloriesBurnedPerHour": number,
+  "difficultyLevel": "string",
+  "formTips": ["string"],
+  "commonMistakes": ["string"],
+  "safetyNotes": "string"
+}`;
 
-    const raw = response.text ?? '{}';
+    const result = await model.generateContent([
+      prompt,
+      { inlineData: { mimeType: mimeType || 'image/jpeg', data: imageBase64 } }
+    ]);
+
+    const raw = result.response.text();
     const cleaned = raw.replace(/```json|```/g, '').trim();
     return NextResponse.json(JSON.parse(cleaned));
 

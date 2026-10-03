@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { GoogleGenAI } from '@google/genai';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 export async function POST(req: Request) {
   try {
@@ -8,19 +8,30 @@ export async function POST(req: Request) {
 
     if (!apiKey) return NextResponse.json({ error: "GEMINI_API_KEY is not set." }, { status: 500 });
 
-    const ai = new GoogleGenAI({ apiKey });
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
 
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.0-flash',
-      contents: [{
-        parts: [
-          { text: `You are a professional nutritionist. Analyze this meal photo and return a JSON object ONLY (no markdown, no explanation). Structure:\n{\n  "mealName": "string",\n  "totalCalories": number,\n  "protein": number,\n  "carbs": number,\n  "fat": number,\n  "fiber": number,\n  "servingSize": "string",\n  "healthScore": number,\n  "healthLabel": "string",\n  "ingredients": ["string"],\n  "tips": ["string"]\n}` },
-          { inlineData: { mimeType: mimeType || 'image/jpeg', data: imageBase64 } }
-        ]
-      }]
-    });
+    const prompt = `You are a professional nutritionist. Analyze this meal photo and return a JSON object ONLY (no markdown, no explanation). Structure:
+{
+  "mealName": "string",
+  "totalCalories": number,
+  "protein": number,
+  "carbs": number,
+  "fat": number,
+  "fiber": number,
+  "servingSize": "string",
+  "healthScore": number,
+  "healthLabel": "string",
+  "ingredients": ["string"],
+  "tips": ["string"]
+}`;
 
-    const raw = response.text ?? '{}';
+    const result = await model.generateContent([
+      prompt,
+      { inlineData: { mimeType: mimeType || 'image/jpeg', data: imageBase64 } }
+    ]);
+
+    const raw = result.response.text();
     const cleaned = raw.replace(/```json|```/g, '').trim();
     return NextResponse.json(JSON.parse(cleaned));
 

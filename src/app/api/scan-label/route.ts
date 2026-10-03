@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { GoogleGenAI } from '@google/genai';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 export async function POST(req: Request) {
   try {
@@ -8,19 +8,31 @@ export async function POST(req: Request) {
 
     if (!apiKey) return NextResponse.json({ error: "GEMINI_API_KEY is not set." }, { status: 500 });
 
-    const ai = new GoogleGenAI({ apiKey });
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
 
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.0-flash',
-      contents: [{
-        parts: [
-          { text: `You are a food safety expert. Analyze this food label/ingredients list and return a JSON object ONLY (no markdown). Structure:\n{\n  "productName": "string",\n  "overallGrade": "string (A/B/C/D/F)",\n  "gradeColor": "string (green/yellow/orange/red)",\n  "gradeExplanation": "string",\n  "totalCalories": number,\n  "servingSize": "string",\n  "harmfulIngredients": [{"name": "string", "reason": "string", "severity": "string"}],\n  "goodIngredients": ["string"],\n  "allergens": ["string"],\n  "additives": [{"name": "string", "type": "string", "safe": boolean}],\n  "verdict": "string",\n  "recommendation": "string (Eat Freely/Eat Occasionally/Eat Rarely/Avoid)"\n}` },
-          { inlineData: { mimeType: mimeType || 'image/jpeg', data: imageBase64 } }
-        ]
-      }]
-    });
+    const prompt = `You are a food safety expert. Analyze this food label/ingredients list and return a JSON object ONLY (no markdown). Structure:
+{
+  "productName": "string",
+  "overallGrade": "string (A/B/C/D/F)",
+  "gradeColor": "string (green/yellow/orange/red)",
+  "gradeExplanation": "string",
+  "totalCalories": number,
+  "servingSize": "string",
+  "harmfulIngredients": [{"name": "string", "reason": "string", "severity": "string"}],
+  "goodIngredients": ["string"],
+  "allergens": ["string"],
+  "additives": [{"name": "string", "type": "string", "safe": boolean}],
+  "verdict": "string",
+  "recommendation": "string (Eat Freely/Eat Occasionally/Eat Rarely/Avoid)"
+}`;
 
-    const raw = response.text ?? '{}';
+    const result = await model.generateContent([
+      prompt,
+      { inlineData: { mimeType: mimeType || 'image/jpeg', data: imageBase64 } }
+    ]);
+
+    const raw = result.response.text();
     const cleaned = raw.replace(/```json|```/g, '').trim();
     return NextResponse.json(JSON.parse(cleaned));
 

@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 const MODEL = 'gemini-1.5-flash';
 const BASE = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}`;
 
-function buildHeaders(apiKey: string) {
+function buildHeaders(apiKey: string): Record<string, string> {
   // AQ / ya29 = OAuth2 bearer token; AIza = standard API key
   if (apiKey.startsWith('AIza')) {
     return { 'Content-Type': 'application/json' };
